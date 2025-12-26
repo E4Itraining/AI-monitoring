@@ -5,7 +5,7 @@
 #
 # Run 'make help' for a list of available targets
 
-.PHONY: help build up down restart logs status \
+.PHONY: help init build up down restart logs status \
         test test-unit test-integration test-e2e test-smoke test-all test-coverage \
         test-docker test-docker-unit test-docker-integration test-docker-e2e \
         clean clean-volumes clean-all \
@@ -45,11 +45,20 @@ help: ## Show this help message
 # DOCKER SERVICES
 #==============================================================================
 
+init: ## Initialize data directories with correct permissions
+	@echo "$(BLUE)Initializing data directories...$(NC)"
+	@mkdir -p opensearch-data grafana-data tempo-data logs
+	@# OpenSearch runs as UID 1000 inside container
+	@if [ -w opensearch-data ]; then \
+		chmod 777 opensearch-data 2>/dev/null || sudo chmod 777 opensearch-data; \
+	fi
+	@echo "$(GREEN)Data directories initialized$(NC)"
+
 build: ## Build all Docker images
 	@echo "$(BLUE)Building Docker images...$(NC)"
 	docker-compose -f $(COMPOSE_FILE) build
 
-up: ## Start all services
+up: init ## Start all services
 	@echo "$(BLUE)Starting services...$(NC)"
 	docker-compose -f $(COMPOSE_FILE) up -d
 	@echo "$(GREEN)Services started!$(NC)"
@@ -57,11 +66,11 @@ up: ## Start all services
 	@echo "  Grafana:    http://localhost:3000 (admin/admin)"
 	@echo "  Prometheus: http://localhost:9090"
 
-up-enhanced: ## Start enhanced stack with alerting
+up-enhanced: init ## Start enhanced stack with alerting
 	@echo "$(BLUE)Starting enhanced services...$(NC)"
 	docker-compose -f $(COMPOSE_ENHANCED_FILE) up -d
 
-up-scalable: ## Start production scalable stack
+up-scalable: init ## Start production scalable stack
 	@echo "$(BLUE)Starting scalable services...$(NC)"
 	docker-compose -f $(COMPOSE_SCALABLE_FILE) up -d
 
