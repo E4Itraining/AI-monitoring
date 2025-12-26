@@ -49,7 +49,7 @@ curl http://localhost:3200/ready         # Tempo
 
 ```bash
 # Copier les nouvelles datasources
-cp grafana/provisioning/datasources/datasources-scalable.yml \
+cp grafana/provisioning/datasources/datasources-scalable.yml.template \
    grafana/provisioning/datasources/datasources.yml
 
 # Redémarrer Grafana
