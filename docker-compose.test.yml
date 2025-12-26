@@ -1,0 +1,162 @@
+# Docker Compose for Test Environment
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml up test-runner
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml run --rm test-unit
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml run --rm test-integration
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml run --rm test-e2e
+
+services:
+  # Test runner service - runs after app is healthy
+  test-runner:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    container_name: ai-test-runner
+    environment:
+      - TEST_APP_HOST=app
+      - TEST_APP_PORT=8000
+      - TEST_PROMETHEUS_HOST=prometheus
+      - TEST_PROMETHEUS_PORT=9090
+      - TEST_GRAFANA_HOST=grafana
+      - TEST_GRAFANA_PORT=3000
+      - TEST_TEMPO_HOST=tempo
+      - TEST_TEMPO_PORT=3200
+      - TEST_OPENSEARCH_HOST=opensearch
+      - TEST_OPENSEARCH_PORT=9200
+      - PYTHONPATH=/app:/tests
+      - MAX_RETRIES=60
+      - RETRY_INTERVAL=2
+    volumes:
+      - ./tests:/tests:ro
+      - ./app:/app:ro
+      - ./pytest.ini:/pytest.ini:ro
+      - ./scripts/docker_test_entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    depends_on:
+      app:
+        condition: service_started
+      prometheus:
+        condition: service_started
+    networks:
+      - obsnet
+    profiles:
+      - test
+
+  # Unit tests only (no external dependencies)
+  test-unit:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    container_name: ai-test-unit
+    environment:
+      - PYTHONPATH=/app:/tests
+    volumes:
+      - ./tests:/tests:ro
+      - ./app:/app:ro
+      - ./pytest.ini:/pytest.ini:ro
+    command: ["pytest", "tests/unit/", "-v", "--tb=short"]
+    networks:
+      - obsnet
+    profiles:
+      - test
+
+  # Integration tests (requires running services)
+  test-integration:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    container_name: ai-test-integration
+    environment:
+      - TEST_APP_HOST=app
+      - TEST_APP_PORT=8000
+      - TEST_PROMETHEUS_HOST=prometheus
+      - TEST_PROMETHEUS_PORT=9090
+      - TEST_GRAFANA_HOST=grafana
+      - TEST_GRAFANA_PORT=3000
+      - PYTHONPATH=/app:/tests
+      - MAX_RETRIES=60
+    volumes:
+      - ./tests:/tests:ro
+      - ./app:/app:ro
+      - ./pytest.ini:/pytest.ini:ro
+      - ./scripts/docker_test_entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    command: ["-m", "integration", "-v", "--tb=short"]
+    depends_on:
+      app:
+        condition: service_started
+      prometheus:
+        condition: service_started
+    networks:
+      - obsnet
+    profiles:
+      - test
+
+  # End-to-end tests (requires full stack)
+  test-e2e:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    container_name: ai-test-e2e
+    environment:
+      - TEST_APP_HOST=app
+      - TEST_APP_PORT=8000
+      - TEST_PROMETHEUS_HOST=prometheus
+      - TEST_PROMETHEUS_PORT=9090
+      - TEST_GRAFANA_HOST=grafana
+      - TEST_GRAFANA_PORT=3000
+      - TEST_TEMPO_HOST=tempo
+      - TEST_TEMPO_PORT=3200
+      - TEST_OPENSEARCH_HOST=opensearch
+      - TEST_OPENSEARCH_PORT=9200
+      - PYTHONPATH=/app:/tests
+      - MAX_RETRIES=90
+      - WAIT_FOR_OBSERVABILITY=true
+    volumes:
+      - ./tests:/tests:ro
+      - ./app:/app:ro
+      - ./pytest.ini:/pytest.ini:ro
+      - ./scripts/docker_test_entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    command: ["-m", "e2e", "-v", "--tb=short"]
+    depends_on:
+      app:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      grafana:
+        condition: service_started
+    networks:
+      - obsnet
+    profiles:
+      - test
+
+  # Smoke tests (quick verification)
+  test-smoke:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    container_name: ai-test-smoke
+    environment:
+      - TEST_APP_HOST=app
+      - TEST_APP_PORT=8000
+      - PYTHONPATH=/app:/tests
+      - MAX_RETRIES=30
+    volumes:
+      - ./tests:/tests:ro
+      - ./app:/app:ro
+      - ./pytest.ini:/pytest.ini:ro
+      - ./scripts/docker_test_entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    command: ["-m", "smoke", "-v", "--tb=short"]
+    depends_on:
+      app:
+        condition: service_started
+    networks:
+      - obsnet
+    profiles:
+      - test
+
+networks:
+  obsnet:
+    driver: bridge
