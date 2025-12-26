@@ -82,7 +82,6 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
       - OTEL_TRACES_EXPORTER=otlp
-      - OTEL_TRACES_EXPORTER=otlp
     depends_on:
       - otel-collector
     networks:
