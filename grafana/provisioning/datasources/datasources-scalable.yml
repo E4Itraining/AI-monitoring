@@ -1,0 +1,122 @@
+# =============================================================================
+# Grafana Datasources - Scalable Stack Configuration
+# =============================================================================
+# Victoria Metrics + Tempo + OpenSearch + OpenObserve
+# =============================================================================
+
+apiVersion: 1
+
+deleteDatasources:
+  - name: Prometheus
+    orgId: 1
+
+datasources:
+  # ===========================================================================
+  # Victoria Metrics (Replaces Prometheus)
+  # ===========================================================================
+  - name: VictoriaMetrics
+    type: prometheus
+    access: proxy
+    url: http://victoria-metrics:8428
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: "5s"
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: "2.51.0"
+      cacheLevel: 'High'
+      incrementalQuerying: true
+      incrementalQueryOverlapWindow: 10m
+      disableRecordingRules: false
+    version: 1
+
+  # ===========================================================================
+  # Grafana Tempo (Traces)
+  # ===========================================================================
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    editable: false
+    jsonData:
+      httpMethod: GET
+      serviceMap:
+        datasourceUid: VictoriaMetrics
+      tracesToLogs:
+        datasourceUid: OpenSearch
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        filterByTraceID: true
+        filterBySpanID: true
+        tags:
+          - key: service.name
+            value: service
+      tracesToMetrics:
+        datasourceUid: VictoriaMetrics
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        tags:
+          - key: service.name
+            value: service
+        queries:
+          - name: 'Request Rate'
+            query: 'sum(rate(traces_spanmetrics_calls_total{$$__tags}[5m]))'
+          - name: 'Error Rate'
+            query: 'sum(rate(traces_spanmetrics_calls_total{$$__tags,status_code="STATUS_CODE_ERROR"}[5m]))'
+      nodeGraph:
+        enabled: true
+      lokiSearch:
+        datasourceUid: OpenSearch
+    version: 1
+
+  # ===========================================================================
+  # OpenSearch (Logs with Full-text Search)
+  # ===========================================================================
+  - name: OpenSearch
+    type: grafana-opensearch-datasource
+    access: proxy
+    url: http://opensearch:9200
+    editable: false
+    jsonData:
+      database: "ai-logs*"
+      flavor: opensearch
+      version: "2.13.0"
+      timeField: "@timestamp"
+      logLevelField: "level"
+      logMessageField: "message"
+      pplEnabled: true
+      maxConcurrentShardRequests: 5
+    version: 1
+
+  # ===========================================================================
+  # OpenObserve (Unified Logs/Metrics/Traces - Alternative UI)
+  # ===========================================================================
+  - name: OpenObserve
+    type: prometheus
+    access: proxy
+    url: http://openobserve:5080/api/default/prometheus
+    editable: false
+    jsonData:
+      httpMethod: POST
+      timeInterval: "15s"
+    basicAuth: true
+    basicAuthUser: admin@ai-monitoring.local
+    secureJsonData:
+      basicAuthPassword: ComplexPass123!
+    version: 1
+
+  # ===========================================================================
+  # OpenObserve Logs (via Loki-compatible API)
+  # ===========================================================================
+  - name: OpenObserve-Logs
+    type: loki
+    access: proxy
+    url: http://openobserve:5080/api/default/loki
+    editable: false
+    basicAuth: true
+    basicAuthUser: admin@ai-monitoring.local
+    secureJsonData:
+      basicAuthPassword: ComplexPass123!
+    version: 1
