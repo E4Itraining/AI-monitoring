@@ -1,0 +1,346 @@
+groups:
+  # ============================================
+  # ALERTES AI - QUALITE ET FIABILITE
+  # ============================================
+  - name: ai_quality_alerts
+    rules:
+      - alert: AIQualityScoreLow
+        expr: ai_response_quality_score < 0.6
+        for: 5m
+        labels:
+          severity: warning
+          category: quality
+        annotations:
+          summary: "Score de qualite AI bas"
+          description: "Le score de qualite AI est {{ $value | printf \"%.2f\" }} (seuil: 0.6) depuis 5 minutes."
+          runbook_url: "docs/runbook.md#ai-quality-score-low"
+
+      - alert: AIQualityScoreCritical
+        expr: ai_response_quality_score < 0.4
+        for: 2m
+        labels:
+          severity: critical
+          category: quality
+        annotations:
+          summary: "Score de qualite AI critique"
+          description: "Le score de qualite AI est {{ $value | printf \"%.2f\" }} (seuil critique: 0.4)."
+          runbook_url: "docs/runbook.md#ai-quality-score-critical"
+
+      - alert: HighHallucinationRate
+        expr: rate(ai_hallucination_events_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          category: quality
+        annotations:
+          summary: "Taux d'hallucinations eleve"
+          description: "Taux d'hallucinations: {{ $value | printf \"%.3f\" }}/s sur 5 minutes."
+          runbook_url: "docs/runbook.md#high-hallucination-rate"
+
+  # ============================================
+  # ALERTES SECURITE
+  # ============================================
+  - name: ai_security_alerts
+    rules:
+      - alert: PromptInjectionDetected
+        expr: increase(ai_prompt_injection_detected_total[5m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Tentatives d'injection de prompt detectees"
+          description: "{{ $value | printf \"%.0f\" }} tentatives d'injection detectees en 5 minutes."
+          runbook_url: "docs/runbook.md#prompt-injection-detected"
+
+      - alert: JailbreakAttemptDetected
+        expr: increase(ai_jailbreak_attempt_total[5m]) > 3
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Tentatives de jailbreak detectees"
+          description: "{{ $value | printf \"%.0f\" }} tentatives de jailbreak en 5 minutes."
+          runbook_url: "docs/runbook.md#jailbreak-attempt-detected"
+
+      - alert: HighPIIDetectionRate
+        expr: rate(ai_pii_detected_total[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Taux eleve de detection PII"
+          description: "Detection frequente de donnees personnelles: {{ $value | printf \"%.2f\" }}/s."
+          runbook_url: "docs/runbook.md#high-pii-detection"
+
+      - alert: SecurityScoreLow
+        expr: ai_security_score < 0.5
+        for: 3m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Score de securite bas"
+          description: "Score de securite: {{ $value | printf \"%.2f\" }} (seuil: 0.5)."
+
+  # ============================================
+  # ALERTES DRIFT SEMANTIQUE
+  # ============================================
+  - name: ai_drift_alerts
+    rules:
+      - alert: SemanticDriftHigh
+        expr: ai_semantic_drift_score > 0.7
+        for: 5m
+        labels:
+          severity: warning
+          category: drift
+        annotations:
+          summary: "Drift semantique eleve"
+          description: "Score de drift: {{ $value | printf \"%.2f\" }}. Les prompts divergent significativement."
+          runbook_url: "docs/runbook.md#semantic-drift-high"
+
+      - alert: SemanticDriftCritical
+        expr: ai_semantic_drift_score > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          category: drift
+        annotations:
+          summary: "Drift semantique critique"
+          description: "Score de drift critique: {{ $value | printf \"%.2f\" }}. Intervention requise."
+
+      - alert: OutOfDomainPrompts
+        expr: rate(ai_out_of_domain_total[10m]) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          category: drift
+        annotations:
+          summary: "Prompts hors domaine frequents"
+          description: "{{ $value | printf \"%.2f\" }}/s prompts hors domaine detectes."
+
+  # ============================================
+  # ALERTES SLO/SLI
+  # ============================================
+  - name: slo_alerts
+    rules:
+      - alert: ErrorBudgetBurnRateHigh
+        expr: ai_error_budget_burn_rate > 2
+        for: 5m
+        labels:
+          severity: warning
+          category: slo
+        annotations:
+          summary: "Consommation rapide du budget d'erreurs"
+          description: "Burn rate: {{ $value | printf \"%.1f\" }}x. Budget d'erreurs en danger."
+          runbook_url: "docs/runbook.md#error-budget-burn-rate"
+
+      - alert: ErrorBudgetBurnRateCritical
+        expr: ai_error_budget_burn_rate > 10
+        for: 2m
+        labels:
+          severity: critical
+          category: slo
+        annotations:
+          summary: "Burn rate critique du budget d'erreurs"
+          description: "Burn rate: {{ $value | printf \"%.1f\" }}x. SLO en danger imminent!"
+
+      - alert: SLOViolationRisk
+        expr: ai_slo_compliance_ratio < 0.995
+        for: 10m
+        labels:
+          severity: warning
+          category: slo
+        annotations:
+          summary: "Risque de violation SLO"
+          description: "Ratio de conformite SLO: {{ $value | printf \"%.3f\" }} (objectif: 99.5%)."
+
+      - alert: HighLatencyP99
+        expr: histogram_quantile(0.99, rate(ai_request_latency_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          category: slo
+        annotations:
+          summary: "Latence P99 elevee"
+          description: "Latence P99: {{ $value | printf \"%.2f\" }}s (seuil: 2s)."
+
+      - alert: HighLatencyP99Critical
+        expr: histogram_quantile(0.99, rate(ai_request_latency_seconds_bucket[5m])) > 5
+        for: 2m
+        labels:
+          severity: critical
+          category: slo
+        annotations:
+          summary: "Latence P99 critique"
+          description: "Latence P99: {{ $value | printf \"%.2f\" }}s (seuil critique: 5s)."
+
+  # ============================================
+  # ALERTES PERFORMANCE ET DISPONIBILITE
+  # ============================================
+  - name: availability_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(ai_requests_error_total[5m]) / rate(ai_requests_total[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: warning
+          category: availability
+        annotations:
+          summary: "Taux d'erreurs eleve"
+          description: "Taux d'erreurs: {{ $value | printf \"%.1f\" }}% (seuil: 5%)."
+          runbook_url: "docs/runbook.md#high-error-rate"
+
+      - alert: HighErrorRateCritical
+        expr: rate(ai_requests_error_total[5m]) / rate(ai_requests_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Taux d'erreurs critique"
+          description: "Taux d'erreurs: {{ $value | printf \"%.1f\" }}% (seuil critique: 10%)."
+
+      - alert: ServiceDown
+        expr: up{job="ai-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Service AI indisponible"
+          description: "Le service AI ne repond plus depuis 1 minute."
+          runbook_url: "docs/runbook.md#service-down"
+
+      - alert: HighRequestRate
+        expr: rate(ai_requests_total[1m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: capacity
+        annotations:
+          summary: "Charge elevee"
+          description: "{{ $value | printf \"%.0f\" }} requetes/seconde."
+
+  # ============================================
+  # ALERTES COMPLIANCE ET TRUST
+  # ============================================
+  - name: compliance_alerts
+    rules:
+      - alert: GDPRComplianceLow
+        expr: ai_gdpr_compliance_score < 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: compliance
+        annotations:
+          summary: "Score GDPR bas"
+          description: "Conformite GDPR: {{ $value | printf \"%.2f\" }} (seuil: 0.8)."
+          runbook_url: "docs/runbook.md#gdpr-compliance-low"
+
+      - alert: TrustIndexLow
+        expr: ai_trust_index < 0.6
+        for: 5m
+        labels:
+          severity: warning
+          category: trust
+        annotations:
+          summary: "Index de confiance bas"
+          description: "Trust index: {{ $value | printf \"%.2f\" }} (seuil: 0.6)."
+
+      - alert: AIActHighRisk
+        expr: ai_risk_level_gauge{level="high"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          category: compliance
+        annotations:
+          summary: "Niveau de risque AI Act eleve"
+          description: "Le systeme est en niveau de risque eleve selon l'AI Act."
+
+  # ============================================
+  # ALERTES GUARDRAILS
+  # ============================================
+  - name: guardrails_alerts
+    rules:
+      - alert: GuardrailTriggeredFrequently
+        expr: rate(ai_guardrail_triggered_total[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          category: guardrails
+        annotations:
+          summary: "Guardrails declenches frequemment"
+          description: "{{ $value | printf \"%.2f\" }}/s declenchements de guardrails."
+
+      - alert: RateLimitExceeded
+        expr: increase(ai_rate_limit_exceeded_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          category: guardrails
+        annotations:
+          summary: "Limite de debit depassee"
+          description: "{{ $value | printf \"%.0f\" }} depassements de rate limit en 5 minutes."
+
+  # ============================================
+  # ALERTES INFRASTRUCTURE
+  # ============================================
+  - name: infrastructure_alerts
+    rules:
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Cible Prometheus indisponible"
+          description: "La cible {{ $labels.job }} est indisponible."
+
+      - alert: OTELCollectorDown
+        expr: up{job="otel-collector"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "OTEL Collector indisponible"
+          description: "Le collecteur OpenTelemetry ne repond plus."
+
+      - alert: TempoDown
+        expr: up{job="tempo"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Tempo indisponible"
+          description: "Le service de tracing Tempo ne repond plus."
+
+  # ============================================
+  # ALERTES COUTS
+  # ============================================
+  - name: cost_alerts
+    rules:
+      - alert: HighTokenUsage
+        expr: rate(ai_tokens_total[1h]) > 10000
+        for: 30m
+        labels:
+          severity: warning
+          category: cost
+        annotations:
+          summary: "Consommation de tokens elevee"
+          description: "{{ $value | printf \"%.0f\" }} tokens/heure. Verifier les couts."
+
+      - alert: CostAnomalyDetected
+        expr: ai_estimated_cost_eur > 10
+        for: 1h
+        labels:
+          severity: warning
+          category: cost
+        annotations:
+          summary: "Anomalie de cout detectee"
+          description: "Cout estime: {{ $value | printf \"%.2f\" }} EUR/heure."
