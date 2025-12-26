@@ -1,0 +1,176 @@
+# ==============================================
+# CONFIGURATION ALERTMANAGER
+# AI Monitoring Platform
+# ==============================================
+
+global:
+  # Timeout pour resoudre une alerte si elle ne se repete pas
+  resolve_timeout: 5m
+
+  # Configuration SMTP (decommenter et configurer pour les emails)
+  # smtp_smarthost: 'smtp.example.com:587'
+  # smtp_from: 'alertmanager@example.com'
+  # smtp_auth_username: 'alertmanager'
+  # smtp_auth_password: 'password'
+
+  # Configuration Slack (decommenter et configurer)
+  # slack_api_url: 'https://hooks.slack.com/services/XXX/YYY/ZZZ'
+
+# ==============================================
+# TEMPLATES PERSONNALISES
+# ==============================================
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# ==============================================
+# ROUTE PRINCIPALE
+# ==============================================
+route:
+  # Regroupement des alertes
+  group_by: ['alertname', 'category', 'severity']
+
+  # Delai avant d'envoyer la premiere notification
+  group_wait: 30s
+
+  # Delai entre les notifications d'un meme groupe
+  group_interval: 5m
+
+  # Delai avant de re-notifier une alerte non resolue
+  repeat_interval: 4h
+
+  # Recepteur par defaut
+  receiver: 'default-receiver'
+
+  # Routes specifiques basees sur les labels
+  routes:
+    # Alertes CRITIQUES -> notification immediate
+    - match:
+        severity: critical
+      receiver: 'critical-receiver'
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: true
+
+    # Alertes SECURITE -> equipe securite
+    - match:
+        category: security
+      receiver: 'security-team'
+      group_wait: 10s
+      repeat_interval: 30m
+
+    # Alertes COMPLIANCE -> equipe compliance
+    - match:
+        category: compliance
+      receiver: 'compliance-team'
+      repeat_interval: 2h
+
+    # Alertes SLO -> SRE
+    - match:
+        category: slo
+      receiver: 'sre-team'
+      repeat_interval: 1h
+
+    # Alertes INFRASTRUCTURE -> ops
+    - match:
+        category: infrastructure
+      receiver: 'ops-team'
+      group_wait: 15s
+
+    # Alertes QUALITE -> equipe ML
+    - match:
+        category: quality
+      receiver: 'ml-team'
+      repeat_interval: 2h
+
+    # Alertes COUT -> finance/ops
+    - match:
+        category: cost
+      receiver: 'cost-alerts'
+      repeat_interval: 6h
+
+# ==============================================
+# INHIBITIONS
+# ==============================================
+inhibit_rules:
+  # Si le service est down, inhiber les alertes de performance
+  - source_match:
+      alertname: ServiceDown
+    target_match:
+      category: slo
+    equal: ['job']
+
+  # Les alertes critiques inhibent les warnings du meme type
+  - source_match:
+      severity: critical
+    target_match:
+      severity: warning
+    equal: ['alertname']
+
+  # Si OTEL Collector est down, inhiber les alertes de traces
+  - source_match:
+      alertname: OTELCollectorDown
+    target_match:
+      alertname: TempoDown
+
+# ==============================================
+# RECEPTEURS
+# ==============================================
+receivers:
+  # Recepteur par defaut (webhook local pour demo)
+  - name: 'default-receiver'
+    webhook_configs:
+      - url: 'http://ai-app:8000/webhooks/alerts'
+        send_resolved: true
+        max_alerts: 10
+
+  # Alertes critiques
+  - name: 'critical-receiver'
+    webhook_configs:
+      - url: 'http://ai-app:8000/webhooks/critical-alerts'
+        send_resolved: true
+    # Decommenter pour Slack
+    # slack_configs:
+    #   - channel: '#critical-alerts'
+    #     title: '🚨 ALERTE CRITIQUE AI'
+    #     text: "{{ .CommonAnnotations.summary }}\n{{ .CommonAnnotations.description }}"
+    #     send_resolved: true
+
+  # Equipe securite
+  - name: 'security-team'
+    webhook_configs:
+      - url: 'http://ai-app:8000/webhooks/security-alerts'
+        send_resolved: true
+    # Decommenter pour email
+    # email_configs:
+    #   - to: 'security@example.com'
+    #     send_resolved: true
+
+  # Equipe compliance
+  - name: 'compliance-team'
+    webhook_configs:
+      - url: 'http://ai-app:8000/webhooks/compliance-alerts'
+        send_resolved: true
+
+  # Equipe SRE
+  - name: 'sre-team'
+    webhook_configs:
+      - url: 'http://ai-app:8000/webhooks/sre-alerts'
+        send_resolved: true
+
+  # Equipe Ops
+  - name: 'ops-team'
+    webhook_configs:
+      - url: 'http://ai-app:8000/webhooks/ops-alerts'
+        send_resolved: true
+
+  # Equipe ML/AI
+  - name: 'ml-team'
+    webhook_configs:
+      - url: 'http://ai-app:8000/webhooks/ml-alerts'
+        send_resolved: true
+
+  # Alertes de cout
+  - name: 'cost-alerts'
+    webhook_configs:
+      - url: 'http://ai-app:8000/webhooks/cost-alerts'
+        send_resolved: true

@@ -1,0 +1,95 @@
+# ==============================================
+# PROMETHEUS CONFIGURATION - ENHANCED
+# AI Monitoring Platform
+# ==============================================
+
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    monitor: 'ai-monitoring'
+    environment: 'production'
+
+# ==============================================
+# REGLES D'ALERTING
+# ==============================================
+rule_files:
+  - /etc/prometheus/alert-rules.yml
+
+# ==============================================
+# ALERTMANAGER
+# ==============================================
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+      scheme: http
+      timeout: 10s
+      api_version: v2
+
+# ==============================================
+# SCRAPE CONFIGURATIONS
+# ==============================================
+scrape_configs:
+  # ----- PROMETHEUS SELF-MONITORING -----
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+
+  # ----- APPLICATION AI -----
+  - job_name: 'ai-app'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'ai-app:8000'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '(.+):.*'
+        replacement: '${1}'
+
+  # ----- OTEL COLLECTOR -----
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets:
+          - 'otel-collector:8888'
+    metrics_path: /metrics
+
+  # ----- TEMPO -----
+  - job_name: 'tempo'
+    static_configs:
+      - targets:
+          - 'tempo:3200'
+    metrics_path: /metrics
+
+  # ----- FLUENT BIT -----
+  - job_name: 'fluent-bit'
+    static_configs:
+      - targets:
+          - 'fluent-bit:2020'
+    metrics_path: /api/v1/metrics/prometheus
+
+  # ----- ALERTMANAGER -----
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets:
+          - 'alertmanager:9093'
+    metrics_path: /metrics
+
+  # ----- GRAFANA -----
+  - job_name: 'grafana'
+    static_configs:
+      - targets:
+          - 'grafana:3000'
+    metrics_path: /metrics
+
+  # ----- OPENSEARCH -----
+  - job_name: 'opensearch'
+    static_configs:
+      - targets:
+          - 'opensearch:9200'
+    metrics_path: /_prometheus/metrics
+    # Note: OpenSearch expose des metriques limitees par defaut
+    # Installez le plugin prometheus-exporter pour plus de metriques
