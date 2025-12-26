@@ -41,6 +41,7 @@ services:
   tempo:
     image: grafana/tempo:2.6.0
     container_name: tempo
+    user: "0"  # Run as root to fix permission issues with bind-mounted volume
     command: ["-config.file=/etc/tempo/tempo.yml"]
     volumes:
       - ./tempo/tempo.yml:/etc/tempo/tempo.yml:ro
