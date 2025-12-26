@@ -49,8 +49,9 @@ init: ## Initialize data directories with correct permissions
 	@echo "$(BLUE)Initializing data directories...$(NC)"
 	@mkdir -p opensearch-data grafana-data tempo-data logs
 	@# OpenSearch runs as UID 1000 inside container
-	@if [ -w opensearch-data ]; then \
-		chmod 777 opensearch-data 2>/dev/null || sudo chmod 777 opensearch-data; \
+	@# Change ownership recursively to ensure all files are accessible
+	@if [ -d opensearch-data ]; then \
+		sudo chown -R 1000:1000 opensearch-data 2>/dev/null || chown -R 1000:1000 opensearch-data 2>/dev/null || chmod -R 777 opensearch-data 2>/dev/null || sudo chmod -R 777 opensearch-data; \
 	fi
 	@echo "$(GREEN)Data directories initialized$(NC)"
 
