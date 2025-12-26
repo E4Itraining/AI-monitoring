@@ -6,7 +6,7 @@ services:
     container_name: opensearch
     environment:
       - discovery.type=single-node
-      - plugins.security.disabled=true
+      - DISABLE_SECURITY_PLUGIN=true
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin
       # Si tu as des crashs, monte à 1g :
       # - OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g
