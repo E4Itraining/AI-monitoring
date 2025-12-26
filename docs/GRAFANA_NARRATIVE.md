@@ -1,165 +1,167 @@
-# Narratif Grafana - AI Trustworthiness Observatory
+# Grafana Narrative - AI Trustworthiness Observatory
 
-## Notre Vision
+> **Available in:** [English](GRAFANA_NARRATIVE.md) | [Français](GRAFANA_NARRATIVE_FR.md)
 
-Transformer l'observabilité des systèmes IA en un **levier stratégique** qui garantit la qualité, la sécurité, la conformité et l'efficience économique de vos déploiements d'intelligence artificielle.
+## Our Vision
+
+Transform AI systems observability into a **strategic lever** that guarantees quality, security, compliance, and economic efficiency for your artificial intelligence deployments.
 
 ---
 
-## Ce Que Nous Faisons
+## What We Do
 
-### Une Plateforme d'Observabilité Complète pour l'IA
+### A Complete Observability Platform for AI
 
-Nous avons construit un **observatoire unifié** qui surveille en temps réel tous les aspects critiques d'un système IA en production :
+We have built a **unified observatory** that monitors in real-time all critical aspects of an AI system in production:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    AI TRUSTWORTHINESS SUITE                      │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│   📊 QUALITÉ        🔒 SÉCURITÉ       📜 CONFORMITÉ              │
-│   ─────────         ─────────        ───────────                 │
-│   • Score qualité   • Injection      • RGPD                     │
-│   • Hallucinations  • Jailbreak      • AI Act                   │
-│   • Cohérence       • PII Detection  • Audit Trail              │
+│   📊 QUALITY         🔒 SECURITY        📜 COMPLIANCE            │
+│   ─────────          ─────────          ───────────              │
+│   • Quality score    • Injection        • GDPR                   │
+│   • Hallucinations   • Jailbreak        • AI Act                 │
+│   • Coherence        • PII Detection    • Audit Trail            │
 │                                                                  │
-│   💰 COÛTS          ⚡ PERFORMANCE    🌱 DURABILITÉ              │
-│   ─────────         ───────────      ───────────                 │
-│   • Tokens          • Latence P99    • Tokens/requête           │
-│   • EUR/requête     • Throughput     • Efficience               │
-│   • Anomalies       • SLO/SLI        • Optimisation             │
+│   💰 COSTS           ⚡ PERFORMANCE      🌱 SUSTAINABILITY        │
+│   ─────────          ───────────        ───────────              │
+│   • Tokens           • Latency P99      • Tokens/request         │
+│   • EUR/request      • Throughput       • Efficiency             │
+│   • Anomalies        • SLO/SLI          • Optimization           │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Architecture Technique
+### Technical Architecture
 
-Notre stack repose sur des technologies open-source éprouvées :
+Our stack relies on proven open-source technologies:
 
-| Composant | Rôle | Valeur Ajoutée |
-|-----------|------|----------------|
-| **Grafana 11** | Visualisation unifiée | 4 dashboards métier dédiés |
-| **Prometheus/Victoria Metrics** | Stockage métriques | 7x plus efficace en RAM |
-| **Tempo** | Traces distribuées | Corrélation bout-en-bout |
-| **OpenSearch** | Logs structurés | Recherche full-text |
-| **AlertManager** | Alerting intelligent | 7 canaux par équipe |
+| Component | Role | Added Value |
+|-----------|------|-------------|
+| **Grafana 11** | Unified visualization | 4 dedicated business dashboards |
+| **Prometheus/Victoria Metrics** | Metrics storage | 7x more RAM efficient |
+| **Tempo** | Distributed traces | End-to-end correlation |
+| **OpenSearch** | Structured logs | Full-text search |
+| **AlertManager** | Intelligent alerting | 7 channels per team |
 
 ---
 
-## Ce Que Nous Mesurons
+## What We Measure
 
-### 50+ Métriques Organisées en 6 Domaines
+### 50+ Metrics Organized in 6 Domains
 
-#### 1. 📊 Qualité des Réponses IA
+#### 1. 📊 AI Response Quality
 
-| Métrique | Description | Seuil Cible |
-|----------|-------------|-------------|
-| `ai_response_quality_score` | Score de qualité global (0-1) | > 0.80 |
-| `ai_hallucination_events_total` | Détection d'hallucinations | < 1% |
-| `ai_coherence_score` | Cohérence contextuelle | > 0.85 |
-| `ai_user_satisfaction_score` | Satisfaction utilisateur (1-5) | > 4.0 |
+| Metric | Description | Target Threshold |
+|--------|-------------|------------------|
+| `ai_response_quality_score` | Global quality score (0-1) | > 0.80 |
+| `ai_hallucination_events_total` | Hallucination detection | < 1% |
+| `ai_coherence_score` | Contextual coherence | > 0.85 |
+| `ai_user_satisfaction_score` | User satisfaction (1-5) | > 4.0 |
 
-**Impact** : Garantir des réponses fiables et pertinentes qui renforcent la confiance utilisateur.
+**Impact**: Ensure reliable and relevant responses that strengthen user trust.
 
-#### 2. 🔒 Sécurité & Protection
+#### 2. 🔒 Security & Protection
 
-| Métrique | Description | Action |
-|----------|-------------|--------|
-| `ai_prompt_injection_attempts_total` | Tentatives d'injection | Blocage automatique |
-| `ai_jailbreak_attempts_total` | Tentatives de contournement | Alerte immédiate |
-| `ai_pii_detected_total` | Données personnelles détectées | Masquage/Blocage |
-| `ai_toxicity_events_total` | Contenus toxiques | Filtrage |
+| Metric | Description | Action |
+|--------|-------------|--------|
+| `ai_prompt_injection_attempts_total` | Injection attempts | Automatic blocking |
+| `ai_jailbreak_attempts_total` | Bypass attempts | Immediate alert |
+| `ai_pii_detected_total` | Personal data detected | Masking/Blocking |
+| `ai_toxicity_events_total` | Toxic content | Filtering |
 
-**8 types de PII détectés** : email, téléphone, carte bancaire, SSN, IBAN, IP, date de naissance, nom.
+**8 PII types detected**: email, phone, credit card, SSN, IBAN, IP, date of birth, name.
 
-#### 3. 📜 Conformité Réglementaire
+#### 3. 📜 Regulatory Compliance
 
-| Métrique | Description | Réglementation |
-|----------|-------------|----------------|
-| `ai_gdpr_compliance_score` | Score conformité RGPD | RGPD |
-| `ai_compliance_score{category="ai_act"}` | Score AI Act | AI Act |
-| `ai_trust_index` | Indice de confiance global | Multi-cadre |
-| `ai_risk_level_gauge` | Niveau de risque (low→critical) | AI Act Article 6 |
+| Metric | Description | Regulation |
+|--------|-------------|------------|
+| `ai_gdpr_compliance_score` | GDPR compliance score | GDPR |
+| `ai_compliance_score{category="ai_act"}` | AI Act score | AI Act |
+| `ai_trust_index` | Global trust index | Multi-framework |
+| `ai_risk_level_gauge` | Risk level (low→critical) | AI Act Article 6 |
 
-#### 4. 💰 Économie & Coûts
+#### 4. 💰 Economics & Costs
 
-| Métrique | Description | Optimisation |
-|----------|-------------|--------------|
-| `ai_tokens_input_total` | Tokens d'entrée consommés | Par modèle |
-| `ai_tokens_output_total` | Tokens de sortie générés | Par modèle |
-| `ai_cost_estimated_eur_total` | Coût cumulé en EUR | Temps réel |
-| Coût/requête | EUR par requête | Alertes anomalies |
+| Metric | Description | Optimization |
+|--------|-------------|--------------|
+| `ai_tokens_input_total` | Input tokens consumed | Per model |
+| `ai_tokens_output_total` | Output tokens generated | Per model |
+| `ai_cost_estimated_eur_total` | Cumulative cost in EUR | Real-time |
+| Cost/request | EUR per request | Anomaly alerts |
 
 #### 5. ⚡ Performance & SLO
 
-| Métrique | Description | SLO |
-|----------|-------------|-----|
-| `ai_latency_seconds` (P99) | Latence 99e percentile | < 1000ms |
-| `ai_requests_error_total` | Taux d'erreur | < 0.5% |
-| `ai_slo_compliance_ratio` | Respect global SLO | > 99.5% |
-| `ai_error_budget_burn_rate` | Vélocité budget erreur | < 1.0 |
+| Metric | Description | SLO |
+|--------|-------------|-----|
+| `ai_latency_seconds` (P99) | 99th percentile latency | < 1000ms |
+| `ai_requests_error_total` | Error rate | < 0.5% |
+| `ai_slo_compliance_ratio` | Overall SLO compliance | > 99.5% |
+| `ai_error_budget_burn_rate` | Error budget burn velocity | < 1.0 |
 
-#### 6. 🔄 Dérive Sémantique
+#### 6. 🔄 Semantic Drift
 
-| Métrique | Description | Dimension |
-|----------|-------------|-----------|
-| `ai_input_drift_score{dimension="topic"}` | Dérive thématique | Sujet |
-| `ai_input_drift_score{dimension="domain"}` | Dérive de domaine | Expertise |
-| `ai_input_drift_score{dimension="complexity"}` | Dérive de complexité | Difficulté |
-| `ai_out_of_domain_total` | Prompts hors-domaine | Périmètre |
+| Metric | Description | Dimension |
+|--------|-------------|-----------|
+| `ai_input_drift_score{dimension="topic"}` | Topic drift | Subject |
+| `ai_input_drift_score{dimension="domain"}` | Domain drift | Expertise |
+| `ai_input_drift_score{dimension="complexity"}` | Complexity drift | Difficulty |
+| `ai_out_of_domain_total` | Out-of-domain prompts | Scope |
 
 ---
 
-## L'Impact
+## The Impact
 
-### Impact Technique
+### Technical Impact
 
-| Avant | Après | Gain |
-|-------|-------|------|
-| Incidents non détectés | Détection proactive < 5min | **-80% MTTR** |
-| Debugging aveugle | Traces corrélées E2E | **-60% temps debug** |
-| Métriques manuelles | Automatisation complète | **100% couverture** |
-| Alertes bruyantes | Alerting intelligent routé | **-70% faux positifs** |
+| Before | After | Gain |
+|--------|-------|------|
+| Undetected incidents | Proactive detection < 5min | **-80% MTTR** |
+| Blind debugging | E2E correlated traces | **-60% debug time** |
+| Manual metrics | Complete automation | **100% coverage** |
+| Noisy alerts | Intelligent routed alerting | **-70% false positives** |
 
-### Impact Business
+### Business Impact
 
-| Dimension | Bénéfice | Mesure |
-|-----------|----------|--------|
-| **Confiance client** | Réponses IA vérifiées | Trust Index > 0.85 |
-| **Réduction coûts** | Optimisation tokens | -15-30% facture LLM |
-| **Time-to-market** | Déploiement confiant | +50% vélocité release |
-| **Risque légal** | Conformité prouvable | Audit trail complet |
+| Dimension | Benefit | Measure |
+|-----------|---------|---------|
+| **Customer trust** | Verified AI responses | Trust Index > 0.85 |
+| **Cost reduction** | Token optimization | -15-30% LLM invoice |
+| **Time-to-market** | Confident deployment | +50% release velocity |
+| **Legal risk** | Provable compliance | Complete audit trail |
 
-### Impact Conformité
+### Compliance Impact
 
-| Réglementation | Exigence | Couverture |
-|----------------|----------|------------|
-| **RGPD** | Protection données personnelles | PII Detection + Masquage |
-| **AI Act** | Gestion des risques | Classification + Monitoring |
-| **AI Act** | Transparence | Audit trail + Traçabilité |
+| Regulation | Requirement | Coverage |
+|------------|-------------|----------|
+| **GDPR** | Personal data protection | PII Detection + Masking |
+| **AI Act** | Risk management | Classification + Monitoring |
+| **AI Act** | Transparency | Audit trail + Traceability |
 | **AI Act** | Documentation | Dashboards + Export |
 
-### Impact Environnemental (GreenOps)
+### Environmental Impact (GreenOps)
 
-| Métrique | Optimisation | Impact |
-|----------|--------------|--------|
-| Tokens/requête | Réduction prompt verbeux | -20% consommation |
-| Requêtes inutiles | Cache intelligent | -30% appels API |
-| Modèle adapté | Right-sizing modèle | -40% compute |
+| Metric | Optimization | Impact |
+|--------|--------------|--------|
+| Tokens/request | Verbose prompt reduction | -20% consumption |
+| Unnecessary requests | Intelligent caching | -30% API calls |
+| Adapted model | Model right-sizing | -40% compute |
 
 ---
 
-## Parcours par Persona
+## Persona Journeys
 
-### 🔧 Persona TECH (SRE / DevOps / ML Engineer)
+### 🔧 TECH Persona (SRE / DevOps / ML Engineer)
 
-**Objectif** : Maintenir la fiabilité et les performances du système IA en production.
+**Objective**: Maintain reliability and performance of the AI system in production.
 
-#### Dashboard Principal : `AI Reliability Overview`
+#### Main Dashboard: `AI Reliability Overview`
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    🔧 VUE SRE / TECH                             │
+│                    🔧 SRE / TECH VIEW                            │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
@@ -172,46 +174,46 @@ Notre stack repose sur des technologies open-source éprouvées :
 │  │  ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁▂▃▄▅▆▇█▇▆▅▄▃▂▁                          │    │
 │  └─────────────────────────────────────────────────────────┘    │
 │                                                                  │
-│  🔔 Alertes actives: 0 Critical | 1 Warning                     │
+│  🔔 Active alerts: 0 Critical | 1 Warning                       │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-#### Workflow Quotidien
+#### Daily Workflow
 
 1. **Morning Check** (5 min)
-   - Vérifier le SLO dashboard : Budget erreur consommé ?
-   - Scanner les alertes overnight
-   - Contrôler la latence P99 trend
+   - Check SLO dashboard: Error budget consumed?
+   - Scan overnight alerts
+   - Review P99 latency trend
 
 2. **Incident Response**
-   - Cliquer sur l'alerte → Drill-down vers traces Tempo
-   - Corréler avec les logs OpenSearch
-   - Identifier le scénario problématique (drift, load, injection)
+   - Click on alert → Drill-down to Tempo traces
+   - Correlate with OpenSearch logs
+   - Identify problematic scenario (drift, load, injection)
 
 3. **Capacity Planning**
-   - Analyser `ai_inflight_requests` pour anticiper le scaling
-   - Monitorer `ai_rate_limit_events_total` pour ajuster les limites
+   - Analyze `ai_inflight_requests` to anticipate scaling
+   - Monitor `ai_rate_limit_events_total` to adjust limits
 
-#### Alertes Configurées
+#### Configured Alerts
 
-| Alerte | Seuil | Action |
-|--------|-------|--------|
-| `HighLatencyP99` | > 1000ms pendant 5min | Investigation perf |
-| `ErrorBudgetBurnRateHigh` | > 2x normal | Review déploiements |
-| `ServiceDown` | 0 requête pendant 2min | Incident majeur |
+| Alert | Threshold | Action |
+|-------|-----------|--------|
+| `HighLatencyP99` | > 1000ms for 5min | Performance investigation |
+| `ErrorBudgetBurnRateHigh` | > 2x normal | Deployment review |
+| `ServiceDown` | 0 requests for 2min | Major incident |
 
 ---
 
-### 💼 Persona BUSINESS (Product Owner / Manager)
+### 💼 BUSINESS Persona (Product Owner / Manager)
 
-**Objectif** : Comprendre la valeur et les risques business de l'IA déployée.
+**Objective**: Understand the business value and risks of deployed AI.
 
-#### Dashboard Principal : `AI Trustworthiness Suite v4.0`
+#### Main Dashboard: `AI Trustworthiness Suite v4.0`
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    💼 VUE BUSINESS                               │
+│                    💼 BUSINESS VIEW                              │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────────────────────────────────────────────────────┐   │
@@ -219,58 +221,58 @@ Notre stack repose sur des technologies open-source éprouvées :
 │  │                                                           │   │
 │  │              ████████████████░░░░  0.87 / 1.0            │   │
 │  │                                                           │   │
-│  │   ✅ Qualité: OK    ✅ Sécurité: OK    ⚠️ Coûts: Élevés  │   │
+│  │   ✅ Quality: OK    ✅ Security: OK    ⚠️ Costs: High    │   │
 │  └──────────────────────────────────────────────────────────┘   │
 │                                                                  │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
-│  │ Satisfaction│  │ Coût Jour   │  │ Conversations│             │
+│  │ Satisfaction│  │ Daily Cost  │  │ Conversations│             │
 │  │    ⭐ 4.2   │  │   €47.50    │  │     1,234    │             │
 │  └─────────────┘  └─────────────┘  └─────────────┘              │
 │                                                                  │
-│  📈 Tendance satisfaction: +5% vs semaine dernière              │
+│  📈 Satisfaction trend: +5% vs last week                        │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-#### KPIs Clés
+#### Key KPIs
 
-| KPI | Description | Cible |
-|-----|-------------|-------|
-| **Trust Index** | Indice de confiance global | > 0.85 |
-| **User Satisfaction** | Note moyenne utilisateurs | > 4.0/5 |
-| **Coût/Conversation** | Coût moyen par échange | < €0.05 |
-| **Hallucination Rate** | % réponses douteuses | < 1% |
+| KPI | Description | Target |
+|-----|-------------|--------|
+| **Trust Index** | Global trust index | > 0.85 |
+| **User Satisfaction** | Average user rating | > 4.0/5 |
+| **Cost/Conversation** | Average cost per exchange | < €0.05 |
+| **Hallucination Rate** | % of questionable responses | < 1% |
 
-#### Questions Auxquelles le Dashboard Répond
+#### Questions the Dashboard Answers
 
-- *"L'IA répond-elle correctement ?"* → Quality Score + Satisfaction
-- *"Combien ça coûte ?"* → Cost panels + Trend
-- *"Est-ce risqué ?"* → Risk Level + Security Score
-- *"Les utilisateurs sont-ils satisfaits ?"* → Feedback Score
+- *"Is the AI responding correctly?"* → Quality Score + Satisfaction
+- *"How much does it cost?"* → Cost panels + Trend
+- *"Is it risky?"* → Risk Level + Security Score
+- *"Are users satisfied?"* → Feedback Score
 
-#### Rapport Hebdomadaire Auto-générable
+#### Auto-generated Weekly Report
 
 ```
-📊 RAPPORT HEBDOMADAIRE AI - Semaine 42
+📊 WEEKLY AI REPORT - Week 42
 
-✅ Trust Index moyen: 0.87 (+2%)
-✅ Satisfaction utilisateur: 4.2/5 (+0.1)
-✅ Disponibilité: 99.8%
-⚠️ Coût total: €347 (+15% vs budget)
-✅ Incidents sécurité: 0 critique
+✅ Average Trust Index: 0.87 (+2%)
+✅ User satisfaction: 4.2/5 (+0.1)
+✅ Availability: 99.8%
+⚠️ Total cost: €347 (+15% vs budget)
+✅ Security incidents: 0 critical
 ```
 
 ---
 
-### 📜 Persona COMPLIANCE (DPO / Legal / Risk Manager)
+### 📜 COMPLIANCE Persona (DPO / Legal / Risk Manager)
 
-**Objectif** : Garantir la conformité réglementaire et documenter la gouvernance IA.
+**Objective**: Ensure regulatory compliance and document AI governance.
 
-#### Dashboard Principal : Panels dédiés dans `AI Trustworthiness Suite`
+#### Main Dashboard: Dedicated panels in `AI Trustworthiness Suite`
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    📜 VUE COMPLIANCE                             │
+│                    📜 COMPLIANCE VIEW                            │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────────────────┐  ┌──────────────────────┐             │
@@ -281,65 +283,65 @@ Notre stack repose sur des technologies open-source éprouvées :
 │  └──────────────────────┘  └──────────────────────┘             │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │              PII DETECTION (7 derniers jours)            │    │
+│  │              PII DETECTION (last 7 days)                 │    │
 │  │                                                          │    │
-│  │  Email: 45 détectés | 45 masqués | 0 fuite              │    │
-│  │  Phone: 12 détectés | 12 masqués | 0 fuite              │    │
-│  │  IBAN:  3 détectés  |  3 bloqués | 0 fuite              │    │
+│  │  Email: 45 detected | 45 masked | 0 leaked              │    │
+│  │  Phone: 12 detected | 12 masked | 0 leaked              │    │
+│  │  IBAN:  3 detected  |  3 blocked | 0 leaked             │    │
 │  └─────────────────────────────────────────────────────────┘    │
 │                                                                  │
-│  📋 Audit Events cette semaine: 12,456 (100% tracés)            │
+│  📋 Audit events this week: 12,456 (100% traced)                │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-#### Exigences Réglementaires Couvertes
+#### Regulatory Requirements Covered
 
-##### RGPD (Règlement Général sur la Protection des Données)
+##### GDPR (General Data Protection Regulation)
 
-| Article | Exigence | Couverture |
-|---------|----------|------------|
-| Art. 5 | Minimisation des données | PII Detection + Masquage |
-| Art. 17 | Droit à l'effacement | Conversation deletion API |
-| Art. 30 | Registre des traitements | Audit trail complet |
-| Art. 33 | Notification violations | Alertes temps réel |
+| Article | Requirement | Coverage |
+|---------|-------------|----------|
+| Art. 5 | Data minimization | PII Detection + Masking |
+| Art. 17 | Right to erasure | Conversation deletion API |
+| Art. 30 | Records of processing | Complete audit trail |
+| Art. 33 | Breach notification | Real-time alerts |
 
-##### AI Act (Règlement Européen sur l'IA)
+##### AI Act (European AI Regulation)
 
-| Article | Exigence | Couverture |
-|---------|----------|------------|
-| Art. 9 | Gestion des risques | `ai_risk_level_gauge` |
-| Art. 12 | Tenue de registres | OpenSearch logs + Trace IDs |
-| Art. 13 | Transparence | Dashboards accessibles |
-| Art. 14 | Contrôle humain | Guardrails configurables |
+| Article | Requirement | Coverage |
+|---------|-------------|----------|
+| Art. 9 | Risk management | `ai_risk_level_gauge` |
+| Art. 12 | Record-keeping | OpenSearch logs + Trace IDs |
+| Art. 13 | Transparency | Accessible dashboards |
+| Art. 14 | Human oversight | Configurable guardrails |
 
-#### Alertes Compliance
+#### Compliance Alerts
 
-| Alerte | Déclencheur | Escalade |
-|--------|-------------|----------|
+| Alert | Trigger | Escalation |
+|-------|---------|------------|
 | `GDPRComplianceLow` | Score < 0.8 | compliance@example.com |
-| `AIActHighRisk` | Niveau critique | DPO + Legal |
-| `HighPIIDetectionRate` | > 0.5/sec | Investigation immédiate |
+| `AIActHighRisk` | Critical level | DPO + Legal |
+| `HighPIIDetectionRate` | > 0.5/sec | Immediate investigation |
 
-#### Export Audit
+#### Audit Export
 
 ```bash
-# Export des événements d'audit pour inspection
+# Export audit events for inspection
 curl "http://opensearch:9200/ai-logs/_search?q=event_type:audit" \
   -H "Content-Type: application/json" > audit_export.json
 ```
 
 ---
 
-### 🌱 Persona GREENOPS (Sustainability / FinOps / Efficiency)
+### 🌱 GREENOPS Persona (Sustainability / FinOps / Efficiency)
 
-**Objectif** : Optimiser l'empreinte environnementale et économique de l'IA.
+**Objective**: Optimize the environmental and economic footprint of AI.
 
-#### Dashboard Focus : Panels Coûts & Efficience
+#### Dashboard Focus: Cost & Efficiency Panels
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    🌱 VUE GREENOPS                               │
+│                    🌱 GREENOPS VIEW                              │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────┐    │
@@ -353,68 +355,68 @@ curl "http://opensearch:9200/ai-logs/_search?q=event_type:audit" \
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
 │  │ Daily Cost   │  │ Waste Ratio  │  │ Cache Hit    │           │
 │  │   €47.50     │  │    12%       │  │    34%       │           │
-│  │   ▼ vs hier  │  │   ⚠️ élevé   │  │   ✅ bon     │           │
+│  │   ▼ vs yday  │  │   ⚠️ high    │  │   ✅ good    │           │
 │  └──────────────┘  └──────────────┘  └──────────────┘           │
 │                                                                  │
-│  🌍 Estimation CO2: ~2.3 kg/jour (basé sur usage cloud)         │
+│  🌍 CO2 Estimate: ~2.3 kg/day (based on cloud usage)            │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-#### Métriques d'Efficience
+#### Efficiency Metrics
 
-| Métrique | Formule | Objectif |
-|----------|---------|----------|
-| **Token Efficiency** | Tokens utiles / Tokens totaux | > 85% |
-| **Cost per Value** | Coût / Satisfaction | Minimiser |
-| **Waste Ratio** | Requêtes échouées / Total | < 5% |
-| **Model Right-sizing** | Qualité / Coût modèle | Optimiser |
+| Metric | Formula | Objective |
+|--------|---------|-----------|
+| **Token Efficiency** | Useful tokens / Total tokens | > 85% |
+| **Cost per Value** | Cost / Satisfaction | Minimize |
+| **Waste Ratio** | Failed requests / Total | < 5% |
+| **Model Right-sizing** | Quality / Model cost | Optimize |
 
-#### Stratégies d'Optimisation Identifiables
+#### Identifiable Optimization Strategies
 
 1. **Prompt Engineering**
-   - Monitorer `ai_tokens_input_total` par scénario
-   - Identifier les prompts verbeux (> 2000 tokens)
-   - Objectif : -20% tokens input
+   - Monitor `ai_tokens_input_total` by scenario
+   - Identify verbose prompts (> 2000 tokens)
+   - Target: -20% input tokens
 
-2. **Caching Intelligent**
-   - Analyser les patterns de requêtes similaires
-   - Implémenter cache sémantique
-   - Objectif : -30% appels API
+2. **Intelligent Caching**
+   - Analyze similar request patterns
+   - Implement semantic caching
+   - Target: -30% API calls
 
 3. **Model Selection**
-   - Comparer qualité/coût par modèle via labels
-   - Router requêtes simples vers modèles légers
-   - Objectif : -40% coût sans perte qualité
+   - Compare quality/cost by model via labels
+   - Route simple requests to lighter models
+   - Target: -40% cost without quality loss
 
-4. **Rate Limiting Proactif**
-   - Monitorer `ai_rate_limit_events_total`
-   - Éviter les pics de consommation
-   - Lisser la charge
+4. **Proactive Rate Limiting**
+   - Monitor `ai_rate_limit_events_total`
+   - Avoid consumption spikes
+   - Smooth the load
 
-#### Dashboard FinOps Recommandé
+#### Recommended FinOps Dashboard
 
 ```
-Rate(ai_cost_estimated_eur_total[1h]) * 24 * 30  → Projection mensuelle
+Rate(ai_cost_estimated_eur_total[1h]) * 24 * 30  → Monthly projection
 Rate(ai_tokens_input_total[1d]) / count(ai_requests_total[1d]) → Tokens/req
 ```
 
 ---
 
-## Synthèse des Dashboards par Persona
+## Dashboard Summary by Persona
 
-| Persona | Dashboard Principal | Fréquence | Métriques Clés |
-|---------|---------------------|-----------|----------------|
-| **🔧 Tech** | AI Reliability + SLO | Continue | Latency, Errors, SLO |
-| **💼 Business** | AI Trustworthiness Suite | Quotidien | Trust Index, Satisfaction, Cost |
-| **📜 Compliance** | Panels Compliance | Hebdo/Audit | GDPR Score, PII, Risk Level |
-| **🌱 GreenOps** | Panels Cost + Custom | Mensuel | Tokens, EUR/req, Efficiency |
+| Persona | Main Dashboard | Frequency | Key Metrics |
+|---------|----------------|-----------|-------------|
+| **🔧 Tech** | AI Reliability + SLO | Continuous | Latency, Errors, SLO |
+| **💼 Business** | AI Trustworthiness Suite | Daily | Trust Index, Satisfaction, Cost |
+| **📜 Compliance** | Compliance Panels | Weekly/Audit | GDPR Score, PII, Risk Level |
+| **🌱 GreenOps** | Cost Panels + Custom | Monthly | Tokens, EUR/req, Efficiency |
 
 ---
 
-## Mise en Route
+## Getting Started
 
-### Accès Rapide
+### Quick Access
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
@@ -422,19 +424,19 @@ Rate(ai_tokens_input_total[1d]) / count(ai_requests_total[1d]) → Tokens/req
 | Prometheus | http://localhost:9090 | - |
 | AlertManager | http://localhost:9093 | - |
 
-### Premiers Pas par Persona
+### First Steps by Persona
 
-1. **Tech** : Ouvrir `AI Reliability Overview` → Vérifier SLO compliance
-2. **Business** : Ouvrir `AI Trustworthiness Suite` → Lire Trust Index
-3. **Compliance** : Filtrer panels GDPR → Exporter audit logs
-4. **GreenOps** : Créer dashboard custom avec métriques coût
+1. **Tech**: Open `AI Reliability Overview` → Check SLO compliance
+2. **Business**: Open `AI Trustworthiness Suite` → Read Trust Index
+3. **Compliance**: Filter GDPR panels → Export audit logs
+4. **GreenOps**: Create custom dashboard with cost metrics
 
 ---
 
 ## Conclusion
 
-Cette plateforme d'observabilité AI transforme les données brutes de monitoring en **insights actionnables** pour chaque partie prenante. En unifiant qualité, sécurité, conformité et efficience dans un seul observatoire, nous permettons à chaque persona de prendre des décisions éclairées basées sur des données fiables et en temps réel.
+This AI observability platform transforms raw monitoring data into **actionable insights** for every stakeholder. By unifying quality, security, compliance, and efficiency in a single observatory, we enable each persona to make informed decisions based on reliable, real-time data.
 
-> *"Ce qui ne se mesure pas ne peut pas s'améliorer."* - Peter Drucker
+> *"What gets measured gets improved."* - Peter Drucker
 
-Avec notre AI Trustworthiness Observatory, chaque aspect de votre IA en production est non seulement mesuré, mais optimisable.
+With our AI Trustworthiness Observatory, every aspect of your AI in production is not only measured but optimizable.
