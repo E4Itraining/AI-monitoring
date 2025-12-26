@@ -120,6 +120,7 @@ services:
   grafana:
     image: grafana/grafana:11.0.0
     container_name: grafana
+    user: "0"  # Run as root to fix permission issues with bind-mounted volume
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
