@@ -1,0 +1,295 @@
+version: "3.8"
+
+# =============================================================================
+# AI Monitoring Platform - Scalable Architecture
+# =============================================================================
+# Stack: Victoria Metrics + OpenObserve + OpenTelemetry + Tempo + Grafana
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # METRICS: Victoria Metrics (Prometheus replacement)
+  # ===========================================================================
+  victoria-metrics:
+    image: victoriametrics/victoria-metrics:v1.96.0
+    container_name: victoria-metrics
+    ports:
+      - "8428:8428"  # HTTP API + Prometheus remote write
+      - "8089:8089"  # InfluxDB line protocol (optional)
+      - "4242:4242"  # OpenTSDB (optional)
+    volumes:
+      - victoria-metrics-data:/victoria-metrics-data
+      - ./victoria-metrics/scrape.yml:/etc/victoria-metrics/scrape.yml:ro
+    command:
+      - "--storageDataPath=/victoria-metrics-data"
+      - "--httpListenAddr=:8428"
+      - "--retentionPeriod=90d"
+      - "--promscrape.config=/etc/victoria-metrics/scrape.yml"
+      - "--promscrape.config.strictParse=false"
+      # Performance optimizations
+      - "--search.maxUniqueTimeseries=1000000"
+      - "--search.maxSamplesPerSeries=100000000"
+      - "--search.maxSamplesPerQuery=1000000000"
+      # Memory optimization
+      - "--memory.allowedPercent=60"
+    networks:
+      - obsnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:8428/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ===========================================================================
+  # METRICS: vmagent (Optional - Scalable scraping)
+  # ===========================================================================
+  vmagent:
+    image: victoriametrics/vmagent:v1.96.0
+    container_name: vmagent
+    ports:
+      - "8429:8429"
+    volumes:
+      - ./victoria-metrics/scrape.yml:/etc/vmagent/scrape.yml:ro
+      - vmagent-data:/vmagent-data
+    command:
+      - "--promscrape.config=/etc/vmagent/scrape.yml"
+      - "--remoteWrite.url=http://victoria-metrics:8428/api/v1/write"
+      - "--remoteWrite.tmpDataPath=/vmagent-data"
+      # High availability
+      - "--remoteWrite.maxDiskUsagePerURL=1GB"
+      - "--remoteWrite.queues=8"
+    networks:
+      - obsnet
+    depends_on:
+      - victoria-metrics
+    restart: unless-stopped
+    profiles:
+      - ha  # Only start with --profile ha
+
+  # ===========================================================================
+  # LOGS + METRICS + TRACES: OpenObserve (Unified platform)
+  # ===========================================================================
+  openobserve:
+    image: public.ecr.aws/zinclabs/openobserve:v0.10.0
+    container_name: openobserve
+    ports:
+      - "5080:5080"   # HTTP API + UI
+      - "5081:5081"   # gRPC (OTLP)
+    environment:
+      ZO_ROOT_USER_EMAIL: admin@ai-monitoring.local
+      ZO_ROOT_USER_PASSWORD: ComplexPass123!
+      ZO_DATA_DIR: /data
+      ZO_HTTP_PORT: 5080
+      ZO_GRPC_PORT: 5081
+      # Telemetry settings
+      ZO_TELEMETRY_ENABLED: "false"
+      # Performance
+      ZO_MAX_FILE_SIZE_ON_DISK: 128  # MB
+      ZO_COMPACT_ENABLED: "true"
+      ZO_MEMORY_CACHE_MAX_SIZE: 512  # MB
+      # Retention
+      ZO_RETENTION_DAYS: 90
+    volumes:
+      - openobserve-data:/data
+    networks:
+      - obsnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5080/healthz"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================================================
+  # TRACES: Grafana Tempo (Retained for trace expertise)
+  # ===========================================================================
+  tempo:
+    image: grafana/tempo:2.6.0
+    container_name: tempo
+    ports:
+      - "3200:3200"   # Tempo HTTP API
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    volumes:
+      - ./tempo/tempo-scalable.yml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    command:
+      - "-config.file=/etc/tempo.yaml"
+    networks:
+      - obsnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:3200/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ===========================================================================
+  # LOGS: OpenSearch (Retained for full-text search)
+  # ===========================================================================
+  opensearch:
+    image: opensearchproject/opensearch:2.13.0
+    container_name: opensearch
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=AdminPass123!
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    networks:
+      - obsnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200 | grep -q 'opensearch'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.13.0
+    container_name: opensearch-dashboards
+    ports:
+      - "5601:5601"
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
+    networks:
+      - obsnet
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ===========================================================================
+  # COLLECTION: OpenTelemetry Collector (Enhanced Gateway)
+  # ===========================================================================
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.94.0
+    container_name: otel-collector
+    ports:
+      - "4317"    # OTLP gRPC (internal, not exposed to avoid conflict with Tempo)
+      - "4318"    # OTLP HTTP (internal)
+      - "8888:8888"   # Prometheus metrics
+      - "13133:13133" # Health check
+      - "55679:55679" # zpages
+    volumes:
+      - ./otel-collector-config/config-scalable.yaml:/etc/otelcol/config.yaml:ro
+    command:
+      - "--config=/etc/otelcol/config.yaml"
+    networks:
+      - obsnet
+    depends_on:
+      - victoria-metrics
+      - openobserve
+      - tempo
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:13133/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ===========================================================================
+  # LOGS COLLECTION: Fluent-bit (Lightweight shipper)
+  # ===========================================================================
+  fluent-bit:
+    image: fluent/fluent-bit:2.2.3
+    container_name: fluent-bit
+    ports:
+      - "2020:2020"
+    volumes:
+      - ./fluent-bit/fluent-bit-scalable.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ./fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
+      - ./logs:/logs:ro
+    networks:
+      - obsnet
+    depends_on:
+      - opensearch
+      - openobserve
+    restart: unless-stopped
+
+  # ===========================================================================
+  # VISUALIZATION: Grafana
+  # ===========================================================================
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-opensearch-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - obsnet
+    depends_on:
+      - victoria-metrics
+      - tempo
+      - opensearch
+    restart: unless-stopped
+
+  # ===========================================================================
+  # APPLICATION: AI Monitoring App
+  # ===========================================================================
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: ai-app
+    ports:
+      - "8000:8000"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=ai-monitoring-app
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=4.0.0,deployment.environment=production
+      - VICTORIA_METRICS_ENDPOINT=http://victoria-metrics:8428
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - obsnet
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  obsnet:
+    driver: bridge
+    name: ai-monitoring-network
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  victoria-metrics-data:
+    name: ai-victoria-metrics-data
+  vmagent-data:
+    name: ai-vmagent-data
+  openobserve-data:
+    name: ai-openobserve-data
+  tempo-data:
+    name: ai-tempo-data
+  opensearch-data:
+    name: ai-opensearch-data
+  grafana-data:
+    name: ai-grafana-data

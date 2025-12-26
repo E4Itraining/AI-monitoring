@@ -1,0 +1,145 @@
+# =============================================================================
+# Grafana Tempo - Scalable Configuration
+# =============================================================================
+# Optimized for production with better retention and performance
+# =============================================================================
+
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 9095
+  log_level: info
+
+# =============================================================================
+# Distributor - Receives traces
+# =============================================================================
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+  log_received_spans:
+    enabled: false
+    include_all_attributes: false
+
+# =============================================================================
+# Ingester - Writes traces to storage
+# =============================================================================
+ingester:
+  max_block_duration: 30m
+  max_block_bytes: 104857600  # 100MB
+  trace_idle_period: 30s
+  flush_check_period: 10s
+
+# =============================================================================
+# Compactor - Optimizes storage
+# =============================================================================
+compactor:
+  compaction:
+    block_retention: 168h  # 7 days
+    compacted_block_retention: 1h
+    compaction_window: 4h
+    max_compaction_objects: 1000000
+    max_block_bytes: 107374182400  # 100GB
+    retention_concurrency: 10
+
+# =============================================================================
+# Metrics Generator - Generate metrics from traces
+# =============================================================================
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      cluster: ai-monitoring
+  storage:
+    path: /var/tempo/generator/wal
+    remote_write:
+      - url: http://victoria-metrics:8428/api/v1/write
+        send_exemplars: true
+  traces_storage:
+    path: /var/tempo/generator/traces
+  processor:
+    service_graphs:
+      dimensions:
+        - service.namespace
+        - http.method
+        - http.status_code
+      enable_client_server_prefix: true
+      peer_attributes:
+        - service.name
+    span_metrics:
+      dimensions:
+        - service.name
+        - http.method
+        - http.status_code
+        - http.route
+      enable_target_info: true
+
+# =============================================================================
+# Storage Configuration
+# =============================================================================
+storage:
+  trace:
+    backend: local
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/traces
+    block:
+      bloom_filter_false_positive: 0.01
+      v2_index_downsample_bytes: 1048576
+      v2_encoding: zstd
+    pool:
+      max_workers: 100
+      queue_depth: 10000
+
+# =============================================================================
+# Query Configuration
+# =============================================================================
+querier:
+  frontend_worker:
+    frontend_address: 0.0.0.0:9095
+  max_concurrent_queries: 20
+  search:
+    external_endpoints: []
+    prefer_self: 10
+
+query_frontend:
+  search:
+    concurrent_jobs: 2000
+    target_bytes_per_job: 104857600
+    default_result_limit: 20
+    max_result_limit: 100
+  trace_by_id:
+    hedge_requests_at: 2s
+    hedge_requests_up_to: 2
+
+# =============================================================================
+# Overrides - Per-tenant limits
+# =============================================================================
+overrides:
+  defaults:
+    ingestion:
+      rate_limit_bytes: 15000000
+      burst_size_bytes: 20000000
+      max_traces_per_user: 10000
+    search:
+      max_bytes_per_tag_values_query: 5000000
+    read:
+      max_bytes_per_trace: 5000000
+    global:
+      max_bytes_per_trace: 5000000
+    metrics_generator:
+      processors:
+        - service-graphs
+        - span-metrics
+        - local-blocks
+      generate_native_histograms: both
+
+# =============================================================================
+# Usage Report (disabled for privacy)
+# =============================================================================
+usage_report:
+  reporting_enabled: false

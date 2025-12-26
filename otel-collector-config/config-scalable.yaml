@@ -1,0 +1,234 @@
+# =============================================================================
+# OpenTelemetry Collector - Scalable Configuration
+# =============================================================================
+# Enhanced configuration for Victoria Metrics, OpenObserve, Tempo integration
+# =============================================================================
+
+receivers:
+  # ===========================================================================
+  # OTLP Receiver (gRPC + HTTP)
+  # ===========================================================================
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+        max_recv_msg_size_mib: 16
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - "*"
+
+  # ===========================================================================
+  # Prometheus Receiver (scrape targets)
+  # ===========================================================================
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector-self'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['localhost:8888']
+
+  # ===========================================================================
+  # Host Metrics (optional - for infrastructure monitoring)
+  # ===========================================================================
+  hostmetrics:
+    collection_interval: 30s
+    scrapers:
+      cpu:
+        metrics:
+          system.cpu.utilization:
+            enabled: true
+      memory:
+        metrics:
+          system.memory.utilization:
+            enabled: true
+      disk:
+      network:
+
+processors:
+  # ===========================================================================
+  # Batch Processor (Performance optimization)
+  # ===========================================================================
+  batch:
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+    timeout: 1s
+
+  # ===========================================================================
+  # Memory Limiter (Prevent OOM)
+  # ===========================================================================
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  # ===========================================================================
+  # Resource Detection (Auto-enrich with environment info)
+  # ===========================================================================
+  resourcedetection:
+    detectors: [env, docker, system]
+    timeout: 5s
+    override: false
+
+  # ===========================================================================
+  # Attributes Processor (Add custom attributes)
+  # ===========================================================================
+  attributes:
+    actions:
+      - key: platform
+        value: ai-monitoring
+        action: upsert
+      - key: collector.version
+        value: "0.94.0"
+        action: upsert
+
+  # ===========================================================================
+  # Filter Processor (Remove noisy data)
+  # ===========================================================================
+  filter/traces:
+    error_mode: ignore
+    traces:
+      span:
+        # Filter out health check spans
+        - 'attributes["http.route"] == "/health"'
+        - 'attributes["http.route"] == "/healthz"'
+        - 'attributes["http.route"] == "/ready"'
+
+  # ===========================================================================
+  # Tail Sampling (Intelligent trace sampling)
+  # ===========================================================================
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 100000
+    expected_new_traces_per_sec: 1000
+    policies:
+      # Always keep error traces
+      - name: errors
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      # Always keep slow traces (> 1s)
+      - name: slow-traces
+        type: latency
+        latency:
+          threshold_ms: 1000
+      # Sample 10% of successful traces
+      - name: probabilistic-sampling
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+
+  # ===========================================================================
+  # Transform Processor (Data transformation)
+  # ===========================================================================
+  transform:
+    error_mode: ignore
+    log_statements:
+      - context: log
+        statements:
+          - set(severity_text, "INFO") where severity_text == ""
+    metric_statements:
+      - context: metric
+        statements:
+          - set(description, "") where description == nil
+
+exporters:
+  # ===========================================================================
+  # Victoria Metrics (Prometheus Remote Write)
+  # ===========================================================================
+  prometheusremotewrite/victoriametrics:
+    endpoint: http://victoria-metrics:8428/api/v1/write
+    tls:
+      insecure: true
+    send_metadata: true
+    resource_to_telemetry_conversion:
+      enabled: true
+
+  # ===========================================================================
+  # Tempo (Traces via OTLP)
+  # ===========================================================================
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+  # ===========================================================================
+  # OpenObserve (Logs via OTLP HTTP)
+  # ===========================================================================
+  otlphttp/openobserve:
+    endpoint: http://openobserve:5080/api/default
+    tls:
+      insecure: true
+    headers:
+      Authorization: "Basic YWRtaW5AYWktbW9uaXRvcmluZy5sb2NhbDpDb21wbGV4UGFzczEyMyE="
+      # Base64 of admin@ai-monitoring.local:ComplexPass123!
+
+  # ===========================================================================
+  # Debug Logging (Development)
+  # ===========================================================================
+  debug:
+    verbosity: basic
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+  # ===========================================================================
+  # Logging Exporter (Fallback)
+  # ===========================================================================
+  logging:
+    loglevel: info
+
+extensions:
+  # ===========================================================================
+  # Health Check
+  # ===========================================================================
+  health_check:
+    endpoint: 0.0.0.0:13133
+    path: "/health"
+
+  # ===========================================================================
+  # Performance Profiler (zpages)
+  # ===========================================================================
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+  # ===========================================================================
+  # Memory Ballast (GC optimization)
+  # ===========================================================================
+  memory_ballast:
+    size_mib: 128
+
+service:
+  extensions: [health_check, zpages, memory_ballast]
+
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      address: 0.0.0.0:8888
+
+  pipelines:
+    # =========================================================================
+    # Metrics Pipeline
+    # =========================================================================
+    metrics:
+      receivers: [otlp, prometheus, hostmetrics]
+      processors: [memory_limiter, batch, resourcedetection, attributes, transform]
+      exporters: [prometheusremotewrite/victoriametrics]
+
+    # =========================================================================
+    # Traces Pipeline
+    # =========================================================================
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/traces, tail_sampling, batch, resourcedetection, attributes]
+      exporters: [otlp/tempo]
+
+    # =========================================================================
+    # Logs Pipeline
+    # =========================================================================
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resourcedetection, attributes, transform]
+      exporters: [otlphttp/openobserve]
