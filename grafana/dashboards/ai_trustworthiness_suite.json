@@ -1,9 +1,10 @@
 {
   "id": null,
-  "uid": "ai-trust-suite",
-  "title": "AI Trustworthiness Suite",
+  "uid": "ai-trust-suite-v4",
+  "title": "AI Trustworthiness Suite v4.0",
+  "description": "Game-changer dashboard with PII detection, security scoring, guardrails, and conversation tracking",
   "schemaVersion": 39,
-  "version": 4,
+  "version": 5,
   "time": {
     "from": "now-15m",
     "to": "now"
@@ -14,17 +15,18 @@
   "panels": [
     {
       "type": "row",
-      "title": "Reliability & Quality",
+      "title": "Executive Overview",
       "collapsed": false,
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
     },
     {
       "type": "stat",
       "title": "Global Reliability SLI",
-      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+      "description": "Overall system reliability (1 - error_rate)",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
       "targets": [
         {
-          "expr": "1 - (sum(rate(ai_request_errors_total[5m])) / sum(rate(ai_requests_total[5m])))",
+          "expr": "1 - (sum(rate(ai_requests_error_total[5m])) / sum(rate(ai_requests_total[5m])))",
           "refId": "A"
         }
       ],
@@ -34,7 +36,8 @@
           "fields": "",
           "values": false
         },
-        "orientation": "vertical"
+        "orientation": "vertical",
+        "colorMode": "background"
       },
       "fieldConfig": {
         "defaults": {
@@ -49,99 +52,14 @@
               { "color": "green", "value": 0.95 }
             ]
           }
-        },
-        "overrides": []
+        }
       }
-    },
-    {
-      "type": "timeseries",
-      "title": "AI Response Quality Score (avg)",
-      "gridPos": { "h": 5, "w": 9, "x": 6, "y": 1 },
-      "targets": [
-        {
-          "expr": "sum(ai_response_quality_score_sum) / sum(ai_response_quality_score_count)",
-          "legendFormat": "quality (avg)",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "type": "timeseries",
-      "title": "Errors & Hallucinations (rate)",
-      "gridPos": { "h": 5, "w": 9, "x": 15, "y": 1 },
-      "targets": [
-        {
-          "expr": "sum(rate(ai_request_errors_total[1m]))",
-          "legendFormat": "errors",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(ai_hallucination_suspected_total[1m]))",
-          "legendFormat": "hallucinations",
-          "refId": "B"
-        }
-      ]
-    },
-    {
-      "type": "timeseries",
-      "title": "Coherence moyenne par scénario",
-      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 6 },
-      "targets": [
-        {
-          "expr": "ai_response_quality_score_sum / ai_response_quality_score_count",
-          "legendFormat": "coherence {{scenario}}",
-          "refId": "A"
-        }
-      ]
-    },
-
-    {
-      "type": "row",
-      "title": "Performance & Cost",
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 11 }
-    },
-    {
-      "type": "timeseries",
-      "title": "AI Response Latency (p95)",
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 12 },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(ai_response_latency_seconds_bucket[5m])) by (le))",
-          "legendFormat": "p95 latency",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "type": "timeseries",
-      "title": "Estimated Cost Rate (EUR/s)",
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 12 },
-      "targets": [
-        {
-          "expr": "rate(ai_estimated_cost_eur_total[1m])",
-          "legendFormat": "€/s",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyEUR"
-        },
-        "overrides": []
-      }
-    },
-
-    {
-      "type": "row",
-      "title": "Risk & Compliance (AI Act style)",
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }
     },
     {
       "type": "stat",
-      "title": "Trust / Compliance Index (synthetic)",
-      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 19 },
+      "title": "Trust Index",
+      "description": "Average trust/compliance index",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
       "targets": [
         {
           "expr": "avg(ai_trust_index)",
@@ -149,12 +67,8 @@
         }
       ],
       "options": {
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "vertical"
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background"
       },
       "fieldConfig": {
         "defaults": {
@@ -165,24 +79,118 @@
             "mode": "absolute",
             "steps": [
               { "color": "red", "value": 0 },
-              { "color": "orange", "value": 0.85 },
-              { "color": "green", "value": 0.95 }
+              { "color": "orange", "value": 0.7 },
+              { "color": "green", "value": 0.9 }
             ]
           }
-        },
-        "overrides": []
+        }
       }
     },
     {
       "type": "stat",
-      "title": "Ratio de réponses à risque (5 min)",
-      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 19 },
+      "title": "Security Score",
+      "description": "Average prompt security score",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
       "targets": [
         {
-          "expr": "sum(rate(ai_risky_responses_total[5m])) / sum(rate(ai_requests_total[5m]))",
+          "expr": "histogram_quantile(0.5, sum(rate(ai_prompt_security_score_bucket[5m])) by (le))",
           "refId": "A"
         }
       ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 0.5 },
+              { "color": "green", "value": 0.8 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Active Conversations",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "targets": [
+        {
+          "expr": "ai_active_conversations",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 100 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "User Satisfaction",
+      "description": "Average user feedback rating (1-5)",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "targets": [
+        {
+          "expr": "ai_user_satisfaction_score",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "min": 1,
+          "max": 5,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 1 },
+              { "color": "orange", "value": 3 },
+              { "color": "green", "value": 4 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Error Budget Burn Rate",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "targets": [
+        {
+          "expr": "ai_slo_error_budget_burn_rate",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -192,54 +200,367 @@
             "mode": "absolute",
             "steps": [
               { "color": "green", "value": 0 },
-              { "color": "orange", "value": 0.05 },
-              { "color": "red", "value": 0.15 }
+              { "color": "orange", "value": 0.5 },
+              { "color": "red", "value": 0.8 }
             ]
           }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "vertical"
+        }
+      }
+    },
+
+    {
+      "type": "row",
+      "title": "Security & Privacy (GAME CHANGER)",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }
+    },
+    {
+      "type": "timeseries",
+      "title": "PII Detection by Type",
+      "description": "Personal data detected in prompts",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 6 },
+      "targets": [
+        {
+          "expr": "sum by (pii_type) (rate(ai_pii_detected_total[5m]))",
+          "legendFormat": "{{pii_type}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80
+          }
+        }
       }
     },
     {
-      "type": "piechart",
-      "title": "Répartition des niveaux de risque (AI Act)",
-      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 19 },
-      "datasource": {
-        "type": "grafana-opensearch-datasource",
-        "uid": "opensearch"
-      },
+      "type": "timeseries",
+      "title": "Prompt Injection Attempts",
+      "description": "Security threats detected by technique",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 6 },
       "targets": [
         {
-          "refId": "A",
-          "query": "event:\"ai_predict\"",
-          "timeField": "@timestamp",
-          "bucketAggs": [
-            {
-              "id": "1",
-              "type": "terms",
-              "field": "ai_act_risk_level",
-              "settings": {
-                "size": 10,
-                "order": "desc",
-                "orderBy": "_count",
-                "min_doc_count": 1
-              }
-            }
-          ],
-          "metrics": [
-            {
-              "id": "2",
-              "type": "count"
-            }
-          ]
+          "expr": "sum by (technique) (rate(ai_prompt_injection_attempts_total[5m]))",
+          "legendFormat": "{{technique}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 20
+          },
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Prompt Security Score Distribution",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 6 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(ai_prompt_security_score_bucket[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ai_prompt_security_score_bucket[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.05, sum(rate(ai_prompt_security_score_bucket[5m])) by (le))",
+          "legendFormat": "p5 (worst)",
+          "refId": "C"
+        }
+      ]
+    },
+
+    {
+      "type": "row",
+      "title": "Guardrails & Protection",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 12 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Guardrail Triggers",
+      "description": "Guardrail activations by type and action",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 13 },
+      "targets": [
+        {
+          "expr": "sum by (guardrail, action) (rate(ai_guardrail_triggers_total[5m]))",
+          "legendFormat": "{{guardrail}} ({{action}})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Blocked Requests by Reason",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 13 },
+      "targets": [
+        {
+          "expr": "sum by (reason) (rate(ai_guardrail_blocked_total[5m]))",
+          "legendFormat": "{{reason}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80
+          },
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+
+    {
+      "type": "row",
+      "title": "Quality & Reliability",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 19 }
+    },
+    {
+      "type": "timeseries",
+      "title": "AI Response Quality Score",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 20 },
+      "targets": [
+        {
+          "expr": "sum(ai_response_quality_score_sum) / sum(ai_response_quality_score_count)",
+          "legendFormat": "quality (avg)",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ai_response_quality_score_bucket[5m])) by (le))",
+          "legendFormat": "quality (p95)",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Errors & Hallucinations Rate",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 20 },
+      "targets": [
+        {
+          "expr": "sum(rate(ai_requests_error_total[1m]))",
+          "legendFormat": "errors",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(ai_hallucination_events_total[1m]))",
+          "legendFormat": "hallucinations",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency Percentiles",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 20 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(ai_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ai_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(ai_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+
+    {
+      "type": "row",
+      "title": "Semantic Drift Detection (GAME CHANGER)",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Drift Score by Dimension",
+      "description": "Topic, domain, and complexity drift",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 27 },
+      "targets": [
+        {
+          "expr": "ai_input_drift_score",
+          "legendFormat": "{{scenario}} - {{dimension}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Drift Alerts",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 27 },
+      "targets": [
+        {
+          "expr": "sum by (severity) (rate(ai_drift_alerts_total[5m]))",
+          "legendFormat": "{{severity}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80
+          }
+        }
+      }
+    },
+
+    {
+      "type": "row",
+      "title": "Conversations & User Experience",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Conversation Turns Distribution",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 34 },
+      "targets": [
+        {
+          "expr": "sum by (conversation_length) (rate(ai_conversation_turns_total[5m]))",
+          "legendFormat": "{{conversation_length}} turns",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "User Feedback Distribution",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 34 },
+      "targets": [
+        {
+          "expr": "sum by (rating) (rate(ai_user_feedback_total[5m]))",
+          "legendFormat": "Rating {{rating}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80
+          }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Conversation Duration",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 34 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(ai_conversation_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p50 duration",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ai_conversation_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95 duration",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+
+    {
+      "type": "row",
+      "title": "Cost & Tokens",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 40 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Cost Rate (EUR/min)",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 41 },
+      "targets": [
+        {
+          "expr": "rate(ai_cost_estimated_eur_total[1m]) * 60",
+          "legendFormat": "EUR/min",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Token Usage Rate",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 41 },
+      "targets": [
+        {
+          "expr": "sum by (model) (rate(ai_tokens_input_total[5m]))",
+          "legendFormat": "input ({{model}})",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (model) (rate(ai_tokens_output_total[5m]))",
+          "legendFormat": "output ({{model}})",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "type": "row",
+      "title": "Risk & Compliance (AI Act)",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 47 }
+    },
+    {
+      "type": "piechart",
+      "title": "Risk Level Distribution",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 48 },
+      "targets": [
+        {
+          "expr": "sum by (risk_level) (ai_risky_responses_total)",
+          "legendFormat": "{{risk_level}}",
+          "refId": "A"
         }
       ],
       "options": {
@@ -249,20 +570,140 @@
         }
       }
     },
-
     {
-      "type": "row",
-      "title": "Charge & scénarios",
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 }
+      "type": "timeseries",
+      "title": "Compliance Scores",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 48 },
+      "targets": [
+        {
+          "expr": "ai_compliance_score",
+          "legendFormat": "{{category}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      }
     },
     {
       "type": "timeseries",
-      "title": "Requests by Scenario",
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 26 },
+      "title": "Trust Index by Scenario",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 48 },
       "targets": [
         {
-          "expr": "rate(ai_requests_total[1m])",
+          "expr": "ai_trust_index",
+          "legendFormat": "{{scenario}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      }
+    },
+
+    {
+      "type": "row",
+      "title": "SLO/SLI Tracking",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 54 }
+    },
+    {
+      "type": "stat",
+      "title": "Latency SLI",
+      "description": "% requests within latency SLO",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 55 },
+      "targets": [
+        {
+          "expr": "1 - (sum(rate(ai_sli_latency_violations_total[5m])) / sum(rate(ai_sli_latency_requests_total[5m])))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 0.95 },
+              { "color": "green", "value": 0.99 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Quality SLI",
+      "description": "% requests meeting quality threshold",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 55 },
+      "targets": [
+        {
+          "expr": "1 - (sum(rate(ai_sli_quality_violations_total[5m])) / sum(rate(ai_sli_quality_requests_total[5m])))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 0.9 },
+              { "color": "green", "value": 0.95 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "SLI Violations Over Time",
+      "gridPos": { "h": 5, "w": 12, "x": 12, "y": 55 },
+      "targets": [
+        {
+          "expr": "rate(ai_sli_latency_violations_total[5m])",
+          "legendFormat": "latency violations",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(ai_sli_quality_violations_total[5m])",
+          "legendFormat": "quality violations",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "type": "row",
+      "title": "Traffic by Scenario",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 60 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Rate by Scenario",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 61 },
+      "targets": [
+        {
+          "expr": "sum by (scenario) (rate(ai_requests_total[1m]))",
           "legendFormat": "{{scenario}}",
           "refId": "A"
         }
@@ -270,12 +711,12 @@
     },
     {
       "type": "timeseries",
-      "title": "Hallucinations by Scenario",
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 26 },
+      "title": "Error Rate by Scenario & Type",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 61 },
       "targets": [
         {
-          "expr": "rate(ai_hallucination_suspected_total[1m])",
-          "legendFormat": "{{scenario}}",
+          "expr": "sum by (scenario, error_type) (rate(ai_requests_error_total[5m]))",
+          "legendFormat": "{{scenario}} - {{error_type}}",
           "refId": "A"
         }
       ]
@@ -283,45 +724,61 @@
 
     {
       "type": "row",
-      "title": "Drift & Performance par scénario",
+      "title": "Audit & Observability",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 }
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 67 }
     },
     {
       "type": "timeseries",
-      "title": "Drift factor moyen par scénario",
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 33 },
+      "title": "Audit Events by Type",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 68 },
       "targets": [
         {
-          "expr": "ai_drift_factor",
-          "legendFormat": "drift {{scenario}}",
+          "expr": "sum by (event_type) (rate(ai_audit_events_total[5m]))",
+          "legendFormat": "{{event_type}}",
           "refId": "A"
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "Latency p95 par scénario",
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 33 },
+      "title": "Audit Events by Severity",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 68 },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le, scenario) (rate(ai_response_latency_seconds_bucket[5m])))",
-          "legendFormat": "p95 {{scenario}}",
+          "expr": "sum by (severity) (rate(ai_audit_events_total[5m]))",
+          "legendFormat": "{{severity}}",
           "refId": "A"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "high" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "warning" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "info" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+          }
+        ]
+      }
     },
 
     {
       "type": "row",
-      "title": "Observability: Traces & Logs",
+      "title": "Traces & Logs",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 }
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 74 }
     },
     {
       "type": "table",
-      "title": "Last Traces (Tempo)",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "title": "Recent Traces (Tempo)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 75 },
       "datasource": {
         "type": "tempo",
         "uid": "tempo"
@@ -329,12 +786,8 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": {
-            "type": "tempo",
-            "uid": "tempo"
-          },
           "queryType": "traceql",
-          "expr": "service.name = \"ai-demo-app\" | limit 50"
+          "query": "{ resource.service.name = \"ai-demo-app\" } | limit 50"
         }
       ],
       "options": {
@@ -343,8 +796,8 @@
     },
     {
       "type": "table",
-      "title": "Recent Error / Hallucination Logs (OpenSearch)",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "title": "Recent Risk/Security Events (OpenSearch)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 75 },
       "datasource": {
         "type": "grafana-opensearch-datasource",
         "uid": "opensearch"
@@ -352,8 +805,7 @@
       "targets": [
         {
           "refId": "A",
-          "queryType": "",
-          "query": "event:\"ai_predict\" AND (risk_flag:true OR hallucination_suspected:true)",
+          "query": "event_type:(security_threat OR pii_detected OR request_blocked OR drift_alert)",
           "timeField": "@timestamp"
         }
       ],
