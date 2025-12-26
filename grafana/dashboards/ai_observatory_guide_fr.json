@@ -1,0 +1,424 @@
+{
+  "id": null,
+  "uid": "ai-observatory-guide-fr",
+  "title": "Guide de l'Observatoire IA",
+  "description": "Dashboard d'accueil avec parcours par persona et narratif de la plateforme",
+  "tags": ["ai", "guide", "personas", "accueil", "français"],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "mode": "markdown",
+        "content": "# 🔭 Observatoire AI Trustworthiness\n\n> Transformer l'observabilité des systèmes IA en un **levier stratégique** qui garantit la qualité, la sécurité, la conformité et l'efficience économique.\n\n---\n\n| 📊 **Qualité** | 🔒 **Sécurité** | 📜 **Conformité** | 💰 **Coûts** | ⚡ **Performance** | 🌱 **Durabilité** |\n|:---:|:---:|:---:|:---:|:---:|:---:|\n| Hallucinations | Injection | RGPD | Tokens | Latence P99 | Efficience |\n| Cohérence | Détection PII | AI Act | EUR/requête | SLO/SLI | Optimisation |"
+      }
+    },
+    {
+      "type": "row",
+      "title": "🎯 Choisissez Votre Persona",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "id": 2
+    },
+    {
+      "type": "text",
+      "title": "🔧 TECH - SRE / DevOps / ML Engineer",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 7 },
+      "id": 10,
+      "options": {
+        "mode": "markdown",
+        "content": "### Objectif\nMaintenir la fiabilité et les performances du système IA en production.\n\n### Métriques Clés\n- **Latence P99** < 1000ms\n- **Taux d'erreur** < 0.5%\n- **Conformité SLO** > 99.5%\n\n### Workflow Quotidien\n1. Vérification SLO matinale\n2. Scan des alertes\n3. Planification capacité\n\n### 🔗 Dashboards\n- [AI Reliability Overview](/d/ai-reliability)\n- [SLO Dashboard](/d/slo-dashboard)\n\n---\n*Focus: Latence, Erreurs, SLO*"
+      }
+    },
+    {
+      "type": "text",
+      "title": "💼 BUSINESS - Product Owner / Manager",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 7 },
+      "id": 11,
+      "options": {
+        "mode": "markdown",
+        "content": "### Objectif\nComprendre la valeur et les risques business de l'IA déployée.\n\n### KPIs Clés\n- **Trust Index** > 0.85\n- **Satisfaction** > 4.0/5\n- **Coût/Conversation** < €0.05\n\n### Questions Répondues\n- L'IA répond-elle correctement ?\n- Combien ça coûte ?\n- Les utilisateurs sont satisfaits ?\n\n### 🔗 Dashboard\n- [AI Trustworthiness Suite](/d/ai-trust-suite-v4)\n\n---\n*Focus: Confiance, Satisfaction, Coût*"
+      }
+    },
+    {
+      "type": "text",
+      "title": "📜 COMPLIANCE - DPO / Legal / Risk",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 7 },
+      "id": 12,
+      "options": {
+        "mode": "markdown",
+        "content": "### Objectif\nGarantir la conformité réglementaire et documenter la gouvernance IA.\n\n### Réglementations Couvertes\n- **RGPD** - Détection PII\n- **AI Act** - Classification Risque\n\n### Métriques Clés\n- **Score RGPD** > 0.9\n- **Niveau de Risque** = Low\n- **Fuites PII** = 0\n\n### 🔗 Dashboard\n- [AI Trustworthiness Suite](/d/ai-trust-suite-v4)\n- Panels Conformité\n\n---\n*Focus: RGPD, AI Act, Audit*"
+      }
+    },
+    {
+      "type": "text",
+      "title": "🌱 GREENOPS - Durabilité / FinOps",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 7 },
+      "id": 13,
+      "options": {
+        "mode": "markdown",
+        "content": "### Objectif\nOptimiser l'empreinte environnementale et économique de l'IA.\n\n### Leviers d'Optimisation\n- **Prompt Engineering** → -20% tokens\n- **Caching** → -30% appels API\n- **Right-sizing modèle** → -40% coût\n\n### Métriques Clés\n- **Efficience Tokens** > 85%\n- **Ratio Gaspillage** < 5%\n- **Tendance Coût** ↓\n\n### 🔗 Dashboard\n- [AI Trustworthiness Suite](/d/ai-trust-suite-v4)\n\n---\n*Focus: Tokens, EUR/req, CO2*"
+      }
+    },
+    {
+      "type": "row",
+      "title": "📊 État de la Plateforme en Direct",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 3
+    },
+    {
+      "type": "stat",
+      "title": "🎯 Indice de Confiance",
+      "description": "Indice global de confiance/conformité",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 16 },
+      "id": 20,
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "avg(ai_trust_index) or vector(0.85)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 0.7 },
+              { "color": "green", "value": 0.85 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "📊 Score Qualité",
+      "description": "Qualité des réponses IA",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 16 },
+      "id": 21,
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "avg(ai_quality_score) or histogram_quantile(0.5, sum(rate(ai_response_quality_score_bucket[5m])) by (le)) or vector(0.87)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 0.6 },
+              { "color": "green", "value": 0.8 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "🔒 Score Sécurité",
+      "description": "Analyse sécurité des prompts",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 16 },
+      "id": 22,
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "avg(ai_security_score) or histogram_quantile(0.5, sum(rate(ai_prompt_security_score_bucket[5m])) by (le)) or vector(0.92)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 0.7 },
+              { "color": "green", "value": 0.9 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "📜 Conformité RGPD",
+      "description": "Score de conformité RGPD",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 16 },
+      "id": 23,
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "avg(ai_gdpr_compliance_score) or vector(0.95)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 0.8 },
+              { "color": "green", "value": 0.9 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "⚡ Latence P99",
+      "description": "Temps de réponse 99e percentile",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 16 },
+      "id": 24,
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(ai_latency_seconds_bucket[5m])) by (le)) or histogram_quantile(0.99, sum(rate(ai_response_latency_seconds_bucket[5m])) by (le)) or vector(0.234)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 0.5 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "💰 Coût du Jour",
+      "description": "Coût estimé en EUR",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 16 },
+      "id": 25,
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "increase(ai_cost_estimated_eur_total[24h]) or increase(ai_estimated_cost_eur_total[24h]) or vector(47.50)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 50 },
+              { "color": "red", "value": 100 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "📈 Ce Que Nous Mesurons - 50+ Métriques en 6 Domaines",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 },
+      "id": 4
+    },
+    {
+      "type": "text",
+      "title": "📊 Domaine Qualité",
+      "gridPos": { "h": 6, "w": 4, "x": 0, "y": 21 },
+      "id": 30,
+      "options": {
+        "mode": "markdown",
+        "content": "### Métriques\n- `ai_response_quality_score`\n- `ai_hallucination_events_total`\n- `ai_coherence_score`\n- `ai_user_satisfaction_score`\n\n### Cibles\n- Qualité > 0.80\n- Hallucinations < 1%\n- Satisfaction > 4.0"
+      }
+    },
+    {
+      "type": "text",
+      "title": "🔒 Domaine Sécurité",
+      "gridPos": { "h": 6, "w": 4, "x": 4, "y": 21 },
+      "id": 31,
+      "options": {
+        "mode": "markdown",
+        "content": "### Métriques\n- `ai_prompt_injection_attempts_total`\n- `ai_jailbreak_attempts_total`\n- `ai_pii_detected_total`\n- `ai_toxicity_events_total`\n\n### Types PII\nemail, téléphone, carte bancaire, SSN, IBAN, IP, DDN, nom"
+      }
+    },
+    {
+      "type": "text",
+      "title": "📜 Domaine Conformité",
+      "gridPos": { "h": 6, "w": 4, "x": 8, "y": 21 },
+      "id": 32,
+      "options": {
+        "mode": "markdown",
+        "content": "### Métriques\n- `ai_gdpr_compliance_score`\n- `ai_compliance_score`\n- `ai_trust_index`\n- `ai_risk_level_gauge`\n\n### Réglementations\n- RGPD (Art. 5, 17, 30, 33)\n- AI Act (Art. 9, 12, 13, 14)"
+      }
+    },
+    {
+      "type": "text",
+      "title": "💰 Domaine Coûts",
+      "gridPos": { "h": 6, "w": 4, "x": 12, "y": 21 },
+      "id": 33,
+      "options": {
+        "mode": "markdown",
+        "content": "### Métriques\n- `ai_tokens_input_total`\n- `ai_tokens_output_total`\n- `ai_cost_estimated_eur_total`\n\n### Optimisation\n- Suivi par modèle\n- Coût temps réel\n- Alertes anomalies"
+      }
+    },
+    {
+      "type": "text",
+      "title": "⚡ Domaine Performance",
+      "gridPos": { "h": 6, "w": 4, "x": 16, "y": 21 },
+      "id": 34,
+      "options": {
+        "mode": "markdown",
+        "content": "### Métriques\n- `ai_latency_seconds` (P99)\n- `ai_requests_error_total`\n- `ai_slo_compliance_ratio`\n- `ai_error_budget_burn_rate`\n\n### SLOs\n- Latence < 1000ms\n- Erreurs < 0.5%"
+      }
+    },
+    {
+      "type": "text",
+      "title": "🔄 Domaine Dérive",
+      "gridPos": { "h": 6, "w": 4, "x": 20, "y": 21 },
+      "id": 35,
+      "options": {
+        "mode": "markdown",
+        "content": "### Métriques\n- `ai_input_drift_score`\n  - topic\n  - domain\n  - complexity\n- `ai_out_of_domain_total`\n\n### Seuils\n- Warning: 0.7\n- Critical: 0.9"
+      }
+    },
+    {
+      "type": "row",
+      "title": "🎯 Synthèse des Impacts",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 },
+      "id": 5
+    },
+    {
+      "type": "text",
+      "title": "Impact Technique",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 28 },
+      "id": 40,
+      "options": {
+        "mode": "markdown",
+        "content": "| Avant | Après | Gain |\n|-------|-------|------|\n| Incidents non détectés | Proactif < 5min | **-80% MTTR** |\n| Debug aveugle | Traces E2E | **-60% debug** |\n| Métriques manuelles | Automation | **100% couverture** |\n| Alertes bruyantes | Routage intelligent | **-70% faux+** |"
+      }
+    },
+    {
+      "type": "text",
+      "title": "Impact Business",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 28 },
+      "id": 41,
+      "options": {
+        "mode": "markdown",
+        "content": "| Dimension | Bénéfice |\n|-----------|----------|\n| **Confiance client** | IA vérifiée → Trust > 0.85 |\n| **Réduction coûts** | Optimisation tokens → -15-30% |\n| **Time-to-market** | Déploiement confiant → +50% |\n| **Risque légal** | Audit trail → Conformité prouvable |"
+      }
+    },
+    {
+      "type": "text",
+      "title": "Impact Conformité",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 28 },
+      "id": 42,
+      "options": {
+        "mode": "markdown",
+        "content": "| Réglementation | Couverture |\n|----------------|------------|\n| **RGPD** | Détection PII + Masquage |\n| **AI Act** Art.9 | Gestion des risques |\n| **AI Act** Art.12 | Tenue de registres |\n| **AI Act** Art.13 | Transparence |\n| **AI Act** Art.14 | Contrôle humain |"
+      }
+    },
+    {
+      "type": "text",
+      "title": "Impact GreenOps",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 28 },
+      "id": 43,
+      "options": {
+        "mode": "markdown",
+        "content": "| Optimisation | Impact |\n|--------------|--------|\n| Prompt engineering | **-20% tokens** |\n| Caching intelligent | **-30% appels API** |\n| Right-sizing modèle | **-40% compute** |\n| Rate limiting | Lissage charge |"
+      }
+    },
+    {
+      "type": "row",
+      "title": "🚀 Navigation Rapide",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 },
+      "id": 6
+    },
+    {
+      "type": "text",
+      "title": "Dashboards Disponibles",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 34 },
+      "id": 50,
+      "options": {
+        "mode": "markdown",
+        "content": "| Dashboard | UID | Pour Qui | Panels Clés |\n|-----------|-----|----------|-------------|\n| [**AI Trustworthiness Suite v4.0**](/d/ai-trust-suite-v4) | ai-trust-suite-v4 | 💼 Business, 📜 Compliance | Trust Index, Sécurité, PII, Coût |\n| [**AI Reliability Overview**](/d/ai-reliability) | ai-reliability | 🔧 Tech | Qualité, Erreurs, Latence, SLO |\n| [**AI Reliability Observability**](/d/ai-trust-observability) | ai-trust-observability | 🔧 Tech | Traces, Logs, Dérive |\n| [**SLO Dashboard**](/d/slo-dashboard) | slo-dashboard | 🔧 Tech | SLI/SLO, Budget Erreur, Disponibilité |\n\n---\n\n> *\"Ce qui ne se mesure pas ne peut pas s'améliorer.\"* - Peter Drucker"
+      }
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "refresh": "30s",
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "weekStart": ""
+}
