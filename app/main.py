@@ -978,6 +978,26 @@ feedback_storage: Dict[str, Dict] = {}
 # ENDPOINTS
 # =============================================================================
 
+@app.get("/")
+def root():
+    """Root endpoint providing API information"""
+    return {
+        "service": "AI Observability Platform",
+        "version": Config.SERVICE_VERSION,
+        "status": "running",
+        "endpoints": {
+            "health": "/health",
+            "metrics": "/metrics",
+            "predict": "/predict",
+            "feedback": "/feedback",
+            "conversations": "/conversations/{conversation_id}",
+            "guardrails": "/guardrails",
+            "stats": "/stats",
+        },
+        "documentation": "/docs",
+    }
+
+
 @app.get("/health", response_model=HealthResponse)
 def health():
     """Health check endpoint"""
