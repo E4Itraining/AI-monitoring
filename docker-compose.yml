@@ -22,6 +22,12 @@ services:
       - ./opensearch-data:/usr/share/opensearch/data
     networks:
       - obsnet
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q 'green\\|yellow'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:2.13.0
@@ -32,9 +38,16 @@ services:
     ports:
       - "5601:5601"
     depends_on:
-      - opensearch
+      opensearch:
+        condition: service_healthy
     networks:
       - obsnet
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q 'available'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   tempo:
     image: grafana/tempo:2.6.0
@@ -97,7 +110,8 @@ services:
       - ./logs:/logs
     command: ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf"]
     depends_on:
-      - opensearch
+      opensearch:
+        condition: service_healthy
     networks:
       - obsnet
 
@@ -145,10 +159,14 @@ services:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
-      - tempo
-      - opensearch
-      - prometheus
-      - alertmanager
+      opensearch:
+        condition: service_healthy
+      tempo:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      alertmanager:
+        condition: service_started
     networks:
       - obsnet
 
