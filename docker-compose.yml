@@ -1,0 +1,141 @@
+version: "3.9"
+
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.13.0
+    container_name: opensearch
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin
+      # Si tu as des crashs, monte à 1g :
+      # - OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./opensearch-data:/usr/share/opensearch/data
+    networks:
+      - obsnet
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.13.0
+    container_name: opensearch-dashboards
+    environment:
+      - OPENSEARCH_HOSTS=["http://opensearch:9200"]
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    ports:
+      - "5601:5601"
+    depends_on:
+      - opensearch
+    networks:
+      - obsnet
+
+  tempo:
+    image: grafana/tempo:2.6.0
+    container_name: tempo
+    command: ["-config.file=/etc/tempo/tempo.yml"]
+    volumes:
+      - ./tempo/tempo.yml:/etc/tempo/tempo.yml:ro
+      - ./tempo-data:/var/tempo
+    ports:
+      - "3200:3200"
+      - "14317:4317"
+      - "14318:4318"
+    networks:
+      - obsnet
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.94.0
+    container_name: otel-collector
+    # On force l'utilisation du fichier de config monté
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      # IMPORTANT : ceci doit pointer vers un FICHIER sur le host
+      # ./otel-collector-config/config.yaml (fichier) -> /etc/otelcol-contrib/config.yaml (fichier)
+      - ./otel-collector-config/config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8888:8888"       # endpoint Prometheus des métriques du collector
+    depends_on:
+      - tempo
+    networks:
+      - obsnet
+
+  app:
+    build: ./app
+    container_name: ai-app
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - OTEL_SERVICE_NAME=ai-lab-app
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_TRACES_EXPORTER=otlp
+    depends_on:
+      - otel-collector
+    networks:
+      - obsnet
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8004"]
+
+  fluent-bit:
+    image: fluent/fluent-bit:2.2.3
+    container_name: fluent-bit
+    ports:
+      - "2020:2020"   # Prometheus metrics endpoint de Fluent Bit
+    volumes:
+      - ./fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ./fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
+      - ./logs:/logs
+    command: ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf"]
+    depends_on:
+      - opensearch
+    networks:
+      - obsnet
+
+  prometheus:
+    image: prom/prometheus:v2.51.1
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+      - tempo
+      - fluent-bit
+    networks:
+      - obsnet
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    depends_on:
+      - tempo
+      - opensearch
+      - prometheus
+    networks:
+      - obsnet
+
+networks:
+  obsnet:
+    driver: bridge
+

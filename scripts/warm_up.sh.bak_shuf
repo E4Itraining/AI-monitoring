@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# warm_up.sh
+# Act I — Baseline "propre" : trafic stable, prompts raisonnables,
+# peu d'erreurs → sert de référence pour les dashboards baseline.
+
+BASE_URL="${BASE_URL:-http://localhost:8000}"
+ENDPOINT="$BASE_URL/predict"
+
+DURATION=${DURATION:-180}   # 3 minutes
+SLEEP_BASE=${SLEEP_BASE:-0.4}
+
+echo "=== Warm-up BASELINE ==="
+echo "Endpoint : $ENDPOINT"
+echo "Durée    : ${DURATION}s"
+echo
+
+END=$((SECONDS + DURATION))
+i=0
+
+while [ $SECONDS -lt $END ]; do
+  i=$((i+1))
+
+  # Prompts normaux, variés mais raisonnables
+  PROMPT=$(
+    shuf -n1 -e \
+      "Explique simplement le principe de l'observabilité pour une équipe de dev." \
+      "Décris en 3 points ce qu'est un SLO appliqué à une API d'IA." \
+      "Donne un exemple de métriques utiles pour suivre la qualité d'un modèle d'IA en production." \
+      "Explique la différence entre latence p50 et p95 pour une API d'IA."
+  )
+
+  # Scénario explicite = baseline (pour les métriques ai_requests_total{scenario="baseline"})
+  curl -s -X POST "$ENDPOINT" \
+    -H "Content-Type: application/json" \
+    -d "{\"prompt\": \"$PROMPT\", \"scenario\": \"baseline\"}" \
+    > /dev/null
+
+  # rythme de base : 1 requête toutes les ~0.3–0.5s
+  sleep "$SLEEP_BASE"
+done
+
+echo "=== Warm-up BASELINE terminé ==="
+echo "→ Vérifie dans Grafana les panels Act I (baseline, coût, tokens)."
+

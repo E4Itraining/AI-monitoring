@@ -1,0 +1,375 @@
+import time
+import random
+import json
+import logging
+import sys
+
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse, Response
+from pydantic import BaseModel
+
+from prometheus_client import (
+    Counter,
+    Histogram,
+    Gauge,
+    generate_latest,
+    CONTENT_TYPE_LATEST,
+)
+
+from opentelemetry import trace
+
+# -------------------------------------------------------------------
+# Logging JSON vers /logs/app.log (pour Fluent Bit / OpenSearch)
+# -------------------------------------------------------------------
+logger = logging.getLogger("ai_app")
+logger.setLevel(logging.INFO)
+
+if not logger.handlers:
+    file_handler = logging.FileHandler("/logs/app.log")
+    file_handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(file_handler)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(stdout_handler)
+
+# -------------------------------------------------------------------
+# OpenTelemetry tracer
+# -------------------------------------------------------------------
+tracer = trace.get_tracer("ai-demo-app")
+
+# -------------------------------------------------------------------
+# Prometheus metrics
+# -------------------------------------------------------------------
+ai_requests_total = Counter(
+    "ai_requests_total",
+    "Total number of AI requests",
+    ["scenario"],
+)
+
+ai_request_errors_total = Counter(
+    "ai_request_errors_total",
+    "Total number of AI request errors",
+    ["scenario"],
+)
+
+ai_hallucination_suspected_total = Counter(
+    "ai_hallucination_suspected_total",
+    "Total number of suspected hallucinations",
+    ["scenario"],
+)
+
+ai_response_latency_seconds = Histogram(
+    "ai_response_latency_seconds",
+    "Latency of AI responses in seconds",
+    ["scenario"],
+)
+
+ai_response_quality_score = Histogram(
+    "ai_response_quality_score",
+    "Quality score of AI responses",
+    ["scenario"],
+)
+
+ai_estimated_cost_eur_total = Counter(
+    "ai_estimated_cost_eur_total",
+    "Estimated total cost in EUR",
+    ["scenario"],
+)
+
+ai_risky_responses_total = Counter(
+    "ai_risky_responses_total",
+    "Total number of risky AI responses",
+    ["scenario"],
+)
+
+# Gauge : drift factor courant (0–1) par scénario
+ai_drift_factor = Gauge(
+    "ai_drift_factor",
+    "Current drift factor (0-1) per scenario",
+    ["scenario"],
+)
+
+# Gauge : trust / compliance index synthétique (0–1)
+ai_trust_index = Gauge(
+    "ai_trust_index",
+    "Synthetic trust/compliance index (0-1) per scenario",
+    ["scenario"],
+)
+
+# -------------------------------------------------------------------
+# FastAPI app
+# -------------------------------------------------------------------
+app = FastAPI(title="AI Reliability / Observability Demo")
+
+
+class PredictRequest(BaseModel):
+    prompt: str
+    scenario: str = "A"  # A = nominal, B = drift, C = stress
+
+
+class PredictResponse(BaseModel):
+    prompt: str
+    scenario: str
+    answer: str
+
+    quality_score: float
+    hallucination_suspected: bool
+    estimated_cost_eur: float
+    latency_ms: float
+
+    # Bloc fiabilité / risque
+    mode: str
+    coherence: float
+    hallucination: bool
+    risk_flag: bool
+    risk_reason: str
+    ai_act_risk_level: str
+    drift_factor: float
+
+
+# -------------------------------------------------------------------
+# Endpoints basiques
+# -------------------------------------------------------------------
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.get("/metrics")
+def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+# -------------------------------------------------------------------
+# Simulation de réponse IA
+# -------------------------------------------------------------------
+def simulate_ai_response(prompt: str, scenario: str):
+    scenario = (scenario or "A").upper()
+
+    # Latence simulée
+    if scenario == "A":      # nominal
+        base_latency = random.uniform(0.05, 0.15)
+    elif scenario == "B":    # drift
+        base_latency = random.uniform(0.1, 0.25)
+    elif scenario == "C":    # stress
+        base_latency = random.uniform(0.2, 0.6)
+    else:
+        base_latency = random.uniform(0.1, 0.3)
+
+    time.sleep(base_latency)
+
+    # Qualité / hallucination
+    if scenario == "A":
+        quality = random.uniform(0.8, 0.95)
+        hallucination_suspected = False
+    elif scenario == "B":
+        quality = random.uniform(0.4, 0.85)
+        hallucination_suspected = random.random() < 0.3
+    elif scenario == "C":
+        quality = random.uniform(0.6, 0.9)
+        hallucination_suspected = random.random() < 0.2
+    else:
+        quality = random.uniform(0.3, 0.8)
+        hallucination_suspected = random.random() < 0.4
+
+    base_cost = 0.0005 * len(prompt)
+    if scenario == "C":
+        base_cost *= 1.5
+    estimated_cost = base_cost
+
+    answer = f"Réponse simulée pour le scénario {scenario} avec score {quality:.2f}."
+
+    return answer, quality, hallucination_suspected, estimated_cost, base_latency
+
+
+# -------------------------------------------------------------------
+# Endpoint /predict
+# -------------------------------------------------------------------
+@app.post("/predict", response_model=PredictResponse)
+def predict(req: PredictRequest):
+    scenario = (req.scenario or "A").upper()
+    prompt = req.prompt or ""
+
+    ai_requests_total.labels(scenario=scenario).inc()
+    start = time.time()
+
+    with tracer.start_as_current_span("ai_predict") as span:
+        span.set_attribute("ai.prompt_length", len(prompt))
+        span.set_attribute("ai.scenario", scenario)
+
+        try:
+            answer, quality, hallucination_suspected, estimated_cost, sim_latency = simulate_ai_response(
+                prompt, scenario
+            )
+            error = False
+        except Exception as e:
+            answer = "Erreur interne dans la simulation."
+            quality = 0.0
+            hallucination_suspected = False
+            estimated_cost = 0.0
+            sim_latency = 0.0
+            error = True
+            logger.error(json.dumps({"event": "error", "message": str(e)}, ensure_ascii=False))
+
+        elapsed = time.time() - start
+        latency_ms = elapsed * 1000.0
+
+        # -------------------------------------------------------------------
+        # Évaluation fiabilité / risque (ANTI-NULL)
+        # -------------------------------------------------------------------
+        # 1. Mode
+        if scenario == "A":
+            mode = "nominal"
+        elif scenario == "B":
+            mode = "drift"
+        elif scenario == "C":
+            mode = "stress"
+        else:
+            mode = "unknown"
+
+        # 2. Coherence (proxy = quality_score)
+        coherence = float(quality) if quality is not None else 0.0
+
+        # 3. Hallucination
+        hallucination = bool(hallucination_suspected)
+
+        # 4. Drift factor
+        if scenario == "A":
+            drift_factor = 0.0
+        elif scenario == "B":
+            drift_factor = round(random.uniform(0.4, 1.0), 3)
+        elif scenario == "C":
+            drift_factor = round(random.uniform(0.2, 0.6), 3)
+        else:
+            drift_factor = round(random.uniform(0.0, 0.5), 3)
+
+        # 5. Risk flag + reason
+        risk_flag = False
+        risk_reason = "ok"
+
+        if coherence < 0.65:
+            risk_flag = True
+            risk_reason = "low_coherence"
+
+        if hallucination and not risk_flag:
+            risk_flag = True
+            risk_reason = "hallucination_detected"
+
+        lowered = prompt.lower()
+        if "ignore" in lowered or "regles" in lowered or "règles" in lowered:
+            risk_flag = True
+            risk_reason = "prompt_injection"
+
+        # 6. AI Act risk level
+        if not risk_flag:
+            ai_act_risk_level = "low"
+        elif risk_reason in ("low_coherence", "hallucination_detected"):
+            ai_act_risk_level = "medium"
+        elif risk_reason == "prompt_injection":
+            ai_act_risk_level = "high"
+        else:
+            ai_act_risk_level = "medium"
+
+        evaluation = {
+            "mode": mode,
+            "coherence": coherence,
+            "hallucination": hallucination,
+            "risk_flag": risk_flag,
+            "risk_reason": risk_reason,
+            "ai_act_risk_level": ai_act_risk_level,
+            "drift_factor": drift_factor,
+        }
+
+        # --- Trust index synthétique (0–1) en fonction du niveau de risque ---
+        if not risk_flag:
+            trust_index = 1.0
+        elif ai_act_risk_level == "medium":
+            trust_index = 0.6
+        elif ai_act_risk_level == "high":
+            trust_index = 0.3
+        else:
+            trust_index = 0.5
+
+        # -------------------------------------------------------------------
+        # Alimentation métriques Prometheus
+        # -------------------------------------------------------------------
+        ai_response_latency_seconds.labels(scenario=scenario).observe(elapsed)
+        ai_response_quality_score.labels(scenario=scenario).observe(quality)
+        ai_estimated_cost_eur_total.labels(scenario=scenario).inc(estimated_cost)
+
+        if error:
+            ai_request_errors_total.labels(scenario=scenario).inc()
+
+        if hallucination_suspected:
+            ai_hallucination_suspected_total.labels(scenario=scenario).inc()
+
+        if risk_flag:
+            ai_risky_responses_total.labels(scenario=scenario).inc()
+
+        # gauges “état courant”
+        ai_drift_factor.labels(scenario=scenario).set(drift_factor)
+        ai_trust_index.labels(scenario=scenario).set(trust_index)
+
+        # -------------------------------------------------------------------
+        # Attributs OTEL (Tempo)
+        # -------------------------------------------------------------------
+        span.set_attribute("ai.quality_score", float(quality))
+        span.set_attribute("ai.hallucination_suspected", bool(hallucination_suspected))
+        span.set_attribute("ai.estimated_cost_eur", float(estimated_cost))
+        span.set_attribute("ai.latency_ms", float(latency_ms))
+
+        span.set_attribute("ai.eval.mode", mode)
+        span.set_attribute("ai.eval.coherence", float(coherence))
+        span.set_attribute("ai.eval.hallucination", bool(hallucination))
+        span.set_attribute("ai.eval.risk_flag", bool(risk_flag))
+        span.set_attribute("ai.eval.risk_reason", risk_reason)
+        span.set_attribute("ai.eval.ai_act_risk_level", ai_act_risk_level)
+        span.set_attribute("ai.eval.drift_factor", float(drift_factor))
+
+        # -------------------------------------------------------------------
+        # Log JSON flatten (OpenSearch)
+        # -------------------------------------------------------------------
+        log_record = {
+            "event": "ai_predict",
+            "prompt": prompt,
+            "scenario": scenario,
+            "answer": answer,
+            "quality_score": quality,
+            "hallucination_suspected": hallucination_suspected,
+            "estimated_cost_eur": estimated_cost,
+            "latency_ms": latency_ms,
+            # champs d'évaluation à plat
+            "mode": mode,
+            "coherence": coherence,
+            "hallucination": hallucination,
+            "risk_flag": risk_flag,
+            "risk_reason": risk_reason,
+            "ai_act_risk_level": ai_act_risk_level,
+            "drift_factor": drift_factor,
+            "trust_index": trust_index,
+            "error": error,
+        }
+        logger.info(json.dumps(log_record, ensure_ascii=False))
+
+        # -------------------------------------------------------------------
+        # Réponse API (jamais de champs null)
+        # -------------------------------------------------------------------
+        resp = PredictResponse(
+            prompt=prompt,
+            scenario=scenario,
+            answer=answer,
+            quality_score=float(quality),
+            hallucination_suspected=bool(hallucination_suspected),
+            estimated_cost_eur=float(estimated_cost),
+            latency_ms=float(latency_ms),
+            mode=mode,
+            coherence=float(coherence),
+            hallucination=bool(hallucination),
+            risk_flag=bool(risk_flag),
+            risk_reason=risk_reason,
+            ai_act_risk_level=ai_act_risk_level,
+            drift_factor=float(drift_factor),
+        )
+
+        return JSONResponse(content=json.loads(resp.json()))

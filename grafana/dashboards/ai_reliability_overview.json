@@ -1,0 +1,82 @@
+{
+  "id": null,
+  "uid": "ai-reliability",
+  "title": "AI Reliability Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "AI Response Quality Score (avg)",
+      "targets": [
+        {
+          "expr": "avg(ai_response_quality_score)",
+          "legendFormat": "quality",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "AI Errors & Hallucinations",
+      "targets": [
+        {
+          "expr": "rate(ai_request_errors_total[1m])",
+          "legendFormat": "errors",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(ai_hallucination_suspected_total[1m])",
+          "legendFormat": "hallucinations",
+          "refId": "B"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "AI Response Latency (p95)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ai_response_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95 latency",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "AI Estimated Cost (EUR)",
+      "targets": [
+        {
+          "expr": "rate(ai_estimated_cost_eur_total[1m])",
+          "legendFormat": "\u20ac/s",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      }
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# run_full_demo.sh
+# Orchestrateur de la démo "Trustworthy AI Observability"
+# Act I → Act II → Act III, aligné avec les dashboards Grafana.
+
+set -e
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+banner() {
+  echo
+  echo "============================================================"
+  echo "$1"
+  echo "============================================================"
+  echo
+}
+
+check_api() {
+  local url="${BASE_URL:-http://localhost:8000}"
+  echo "Test de l'API sur $url ..."
+  curl -s "$url/health" > /dev/null 2>&1 || curl -s "$url" > /dev/null 2>&1 || true
+}
+
+banner "Préparation de la démo – vérification API"
+check_api
+
+# -------------------------
+# Act I — Baseline & coût
+# -------------------------
+banner "Act I — Baseline propre (warm_up.sh)"
+DURATION=120 bash "$DIR/warm_up.sh"
+
+banner "Act I — Baseline + parallélisme (warmup_3min_parallel.sh)"
+DURATION=180 WORKERS=8 bash "$DIR/warmup_3min_parallel.sh"
+
+sleep 5
+
+# ------------------------------------------
+# Act II — Drift, latence, injections, risque
+# ------------------------------------------
+banner "Act II — Drift progressif (progressive_drift.sh)"
+DURATION=180 bash "$DIR/progressive_drift.sh"
+
+banner "Act II — Stress de latence (latence_stress.sh)"
+DURATION=180 BURST_SIZE=30 PAUSE=3 bash "$DIR/latence_stress.sh"
+
+banner "Act II — Prompt injections ciblées (prompt_injections.sh)"
+DURATION=180 bash "$DIR/prompt_injections.sh"
+
+banner "Act II — Risk Storm global (ai_risk_storm.sh)"
+DURATION=300 WORKERS=8 bash "$DIR/ai_risk_storm.sh"
+
+# -------------------------
+# Act III — Rebuild trust
+# -------------------------
+banner "Act III — Rebaseline après mitigation (warm_up.sh)"
+DURATION=120 bash "$DIR/warm_up.sh"
+
+banner "Démo terminée"
+echo "→ Tu peux maintenant montrer dans Grafana :"
+echo "   - l'avant / après sur les SLO"
+echo "   - la baisse des drifts"
+echo "   - la réduction des erreurs / événements à risque."

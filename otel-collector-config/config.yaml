@@ -1,0 +1,17 @@
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'self'
+          static_configs:
+            - targets: ['0.0.0.0:8888']
+
+exporters:
+  logging:
+    loglevel: debug
+
+service:
+  pipelines:
+    metrics:
+      receivers: [prometheus]
+      exporters: [logging]

@@ -1,0 +1,255 @@
+{
+  "id": null,
+  "uid": "ai-trust-observability",
+  "title": "AI Trustworthiness Observability",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m"]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Reliability & Quality",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Global Reliability SLI",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 1 },
+      "targets": [
+        {
+          "expr": "1 - (rate(ai_request_errors_total[5m]) / rate(ai_requests_total[5m]))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "vertical"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 0.9 },
+              { "color": "green", "value": 0.95 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "AI Response Quality Score (avg)",
+      "gridPos": { "h": 6, "w": 9, "x": 6, "y": 1 },
+      "targets": [
+        {
+          "expr": "avg(ai_response_quality_score)",
+          "legendFormat": "quality",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Errors & Hallucinations (rate)",
+      "gridPos": { "h": 6, "w": 9, "x": 15, "y": 1 },
+      "targets": [
+        {
+          "expr": "rate(ai_request_errors_total[1m])",
+          "legendFormat": "errors",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(ai_hallucination_suspected_total[1m])",
+          "legendFormat": "hallucinations",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "type": "row",
+      "title": "Performance & Cost",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "AI Response Latency (p95)",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ai_response_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95 latency",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Estimated Cost Rate (EUR/s)",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "rate(ai_estimated_cost_eur_total[1m])",
+          "legendFormat": "€/s",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR"
+        },
+        "overrides": []
+      }
+    },
+
+    {
+      "type": "row",
+      "title": "Compliance-style View",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 }
+    },
+    {
+      "type": "stat",
+      "title": "Trust / Compliance Index (synthetic)",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 15 },
+      "targets": [
+        {
+          "expr": "1 - ((rate(ai_request_errors_total[5m]) + rate(ai_hallucination_suspected_total[5m])) / rate(ai_requests_total[5m]))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "vertical"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 0.85 },
+              { "color": "green", "value": 0.95 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Requests by Scenario",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 15 },
+      "targets": [
+        {
+          "expr": "rate(ai_requests_total[1m])",
+          "legendFormat": "{{scenario}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Hallucinations by Scenario",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 15 },
+      "targets": [
+        {
+          "expr": "rate(ai_hallucination_suspected_total[1m])",
+          "legendFormat": "{{scenario}}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "type": "row",
+      "title": "Observability: Traces & Logs",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 21 }
+    },
+
+    {
+      "type": "table",
+      "title": "Last Traces (Tempo)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "tempo"
+          },
+          "queryType": "traceql",
+          "expr": "service.name = \"ai-demo-app\" | limit 50"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Latency per Scenario (p95)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, scenario) (rate(ai_response_latency_seconds_bucket[5m])))",
+          "legendFormat": "p95 {{scenario}}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "type": "table",
+      "title": "Recent Error / Hallucination Logs (OpenSearch)",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 30 },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "opensearch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "",
+          "query": "level:ERROR OR message:hallucination",
+          "timeField": "@timestamp"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      }
+    }
+  ]
+}
+
