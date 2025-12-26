@@ -13,6 +13,7 @@ Game-changer improvements:
 - Rate Limiting
 """
 
+import os
 import time
 import random
 import json
@@ -137,11 +138,19 @@ resource = Resource(
 )
 
 trace_provider = TracerProvider(resource=resource)
-otlp_exporter = OTLPSpanExporter(
-    endpoint="otel-collector:4317",
-    insecure=True,
-)
-trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+
+# Only configure OTLP exporter if endpoint is available (Docker environment)
+otel_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "otel-collector:4317")
+try:
+    otlp_exporter = OTLPSpanExporter(
+        endpoint=otel_endpoint,
+        insecure=True,
+    )
+    trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+    logging.info(f"OpenTelemetry configured with endpoint: {otel_endpoint}")
+except Exception as e:
+    logging.warning(f"OpenTelemetry exporter not available (standalone mode): {e}")
+
 trace.set_tracer_provider(trace_provider)
 tracer = trace.get_tracer(Config.SERVICE_NAME)
 
